@@ -1,4 +1,4 @@
-clear; close all;
+clear; close all; init;
 %% Initialisation
 load sunspot.dat
 % FFT points
@@ -54,7 +54,7 @@ for iWindow = 1: nWindows
     grid on; grid minor;
     legend('Raw', 'Mean-detrend', 'Log-mean');
     title(sprintf('Periodogram of sunspots with %s window', label(iWindow)));
-    xlabel('Normalised frequency (rad/sample)');
+    xlabel('Digital frequency (rad/sample)');
     ylabel('Power density (dB)');
     ylim([-20 60]);
 end

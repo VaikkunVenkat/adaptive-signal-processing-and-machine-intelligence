@@ -1,4 +1,4 @@
-clear; close all;
+clear; close all; init;
 %% Initialisation
 % sampling frequency
 fSample = 1e3;
@@ -10,12 +10,14 @@ nFft = 1024;
 freqSine = [80 150];
 % signal
 xSample = sin(2 * pi * freqSine(1) * t) + sin(2 * pi * freqSine(2) * t);
+% xSample = randn(size(t));
+% xSample = 1 ./ t;
 %% PSD: direct
 % first apply FT into f-domain then calculate power of frequency components
 psd = abs(fft(xSample, nFft) .^ 2) / (nFft + 1);
 %% ACF: indirect
 % calculate autocorrelation function of samples in time domain
-acf = xcorr(xSample, 'coeff');
+acf = xcorr(xSample, 'unbiased');
 % apply FT into f-domain
 acfFt = abs(fft(acf, nFft));
 %% Result plots
