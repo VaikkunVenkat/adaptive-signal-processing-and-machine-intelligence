@@ -11,7 +11,7 @@ xRaw = sunspot(:, 2);
 nSamples = length(t);
 % compare different windows
 window = [rectwin(nSamples), hamming(nSamples), blackman(nSamples)];
-label = ["Rectangular", "Hamming", "Blackman"];
+label = ["rectangular", "Hamming", "Blackman"];
 % number of windows
 nWindows = size(window, 2);
 psdRaw = zeros(nFft + 1, nWindows);
@@ -55,6 +55,6 @@ for iWindow = 1: nWindows
     legend('Raw', 'Mean-detrend', 'Log-mean');
     title(sprintf('Periodogram of sunspots with %s window', label(iWindow)));
     xlabel('Digital frequency (rad/sample)');
-    ylabel('Power density (dB)');
+    ylabel('Power spectral density (dB)');
     ylim([-20 60]);
 end

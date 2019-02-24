@@ -36,7 +36,7 @@ grid on; grid minor;
 legend('Standard');
 title('Periodogram of EEG: standard method');
 xlabel('Frequency (Hz)');
-ylabel('Power density (dB)');
+ylabel('Power spectral density (dB)');
 ylim([-150 -90]);
 % Bartlett
 subplot(2, 1, 2);
@@ -50,4 +50,4 @@ grid on; grid minor;
 legend(legendStr);
 title('Periodogram of EEG: Bartlett method');
 xlabel('Frequency (Hz)');
-ylabel('Power density (dB)');
+ylabel('Power spectral density (dB)');
