@@ -21,15 +21,16 @@ nOverlap = 0;
 %% Standard periodogram
 [psdStd, fStd] = periodogram(poz, rectwin(nSamples), nFft, fSample);
 %% Bartlett periodogram: averaging with rectangular windows
-psdAvg = zeros(nFft / 2 + 1, nWindows);
+psdAvg = cell(nWindows, 1);
 for iWindow = 1: nWindows
     % number of samples of each segment
     nSegSamples = tWindow(iWindow) * fSample;
-    [psdAvg(:, iWindow), fAvg]= pwelch(poz, rectwin(nSegSamples), nOverlap, nFft, fSample);
+    [psdAvg{iWindow}, fAvg]= pwelch(poz, rectwin(nSegSamples), nOverlap, nFft, fSample);
 end
 %% Result Plots
 % standard
 figure;
+subplot(2, 1, 1);
 plot(fStd, pow2db(psdStd), 'k');
 grid on; grid minor;
 legend('Standard');
@@ -38,10 +39,10 @@ xlabel('Frequency (Hz)');
 ylabel('Power density (dB)');
 ylim([-150 -90]);
 % Bartlett
+subplot(2, 1, 2);
 legendStr = cell(nWindows, 1);
-figure;
 for iWindow = 1: nWindows
-    plot(fAvg, pow2db(psdAvg(:, iWindow)));
+    plot(fAvg, pow2db(psdAvg{iWindow}));
     legendStr{iWindow} = sprintf('Window length = %d sec', tWindow(iWindow));
     hold on;
 end
