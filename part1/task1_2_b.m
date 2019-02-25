@@ -1,37 +1,35 @@
 clear; close all; init;
 %% Initialisation
 eeg = load('data/EEG_Data/EEG_Data_Assignment1.mat');
-% sampling frequency
+% analog sampling frequency
 fSample = eeg.fs;
-% number of samples
+% length of signal
 nSamples = length(eeg.POz);
-% length of recording
-tDuration = nSamples / fSample;
-% samples per Hertz
-samplesPerHz = 5;
+% Hertz per sample
+fResolution = 1 / 5;
 % FFT points
-nFft = samplesPerHz * fSample;
-% window length
+nFft = fSample / fResolution;
+% duration of window
 tWindow = [10 5 1];
-nWindows = length(tWindow);
-% preprocess: centering
+% remove mean
 poz = eeg.POz - mean(eeg.POz);
 % overlap length
 nOverlap = 0;
+% declare vars
+psdAvg = cell(length(tWindow), 1);
 %% Standard periodogram
-[psdStd, fStd] = periodogram(poz, rectwin(nSamples), nFft, fSample);
+[psdStd, fAnalog] = periodogram(poz, rectwin(nSamples), nFft, fSample);
 %% Bartlett periodogram: averaging with rectangular windows
-psdAvg = cell(nWindows, 1);
-for iWindow = 1: nWindows
-    % number of samples of each segment
-    nSegSamples = tWindow(iWindow) * fSample;
-    [psdAvg{iWindow}, fAvg]= pwelch(poz, rectwin(nSegSamples), nOverlap, nFft, fSample);
+for iWindow = 1: length(tWindow)
+    % number of samples of windows
+    nWindows = tWindow(iWindow) * fSample;
+    psdAvg{iWindow} = pwelch(poz, rectwin(nWindows), nOverlap, nFft, fSample);
 end
 %% Result Plots
 % standard
 figure;
 subplot(2, 1, 1);
-plot(fStd, pow2db(psdStd), 'k');
+plot(fAnalog, pow2db(psdStd), 'k');
 grid on; grid minor;
 legend('Standard');
 title('Periodogram of EEG: standard method');
@@ -40,9 +38,9 @@ ylabel('Power spectral density (dB)');
 ylim([-150 -90]);
 % Bartlett
 subplot(2, 1, 2);
-legendStr = cell(nWindows, 1);
-for iWindow = 1: nWindows
-    plot(fAvg, pow2db(psdAvg{iWindow}));
+legendStr = cell(length(tWindow), 1);
+for iWindow = 1: length(tWindow)
+    plot(fAnalog, pow2db(psdAvg{iWindow}));
     legendStr{iWindow} = sprintf('Window length = %d sec', tWindow(iWindow));
     hold on;
 end

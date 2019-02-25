@@ -1,47 +1,46 @@
 clear; close all; init;
 %% Initialisation
-% sampling frequency
-fSample = 1e3;
+% normalised sampling frequency
+fSample = 1;
+% length of signal
+nSamples = 1024;
 % sampling time
-t = 0: 1 / fSample: (1 - 1 / fSample);
-% number of samples
-nSamples = length(t);
-% frequency range
-f = (0: nSamples - 1) * (fSample / nSamples);
-% symmetrical frequency
-fShift = -nSamples / 2: nSamples / (2 * nSamples - 1): nSamples / 2 - nSamples / (2 * nSamples - 1);
-% white Gaussian noise with power 1
+t = (0: nSamples - 1) / fSample;
+% normalised frequencies of sine waves
+freqSine = [0.12 0.27];
+% white Gaussian noise with unit power
 wgn = randn(1, nSamples);
-% frequencies of sine waves
-freqSine = [80 150];
 % noisy sinusoidal signal
 noisySine = sin(2 * pi * freqSine(1) * t) + sin(2 * pi * freqSine(2) * t) + randn(1, nSamples);
-% filtered WGN
+% filtered (low-pass) WGN
 a = 1; b = [1 1];
 wgnFilter = filter(b, a, wgn);
 % signal set
-signal = [wgn; noisySine; wgnFilter];
+signal = {wgn, noisySine, wgnFilter};
 label = ["white Gaussian noise", "noisy sinusoidal", "filtered white Gaussian noise"];
-nSignals = size(signal, 1);
-%% Biased and unbiased ACF
+nSignals = length(signal);
+% declare vars
 acfUnbiased = cell(nSignals, 1);
 acfBiased = cell(nSignals, 1);
 psdAcfUnbiased = cell(nSignals, 1);
 psdAcfBiased = cell(nSignals, 1);
+%% Biased and unbiased ACF
 for iSignal = 1: nSignals
     % biased and unbiased autocorrelation
-    [acfUnbiased{iSignal}, lag] = xcorr(signal(iSignal, :), 'unbiased');
-    acfBiased{iSignal} = xcorr(signal(iSignal, :), 'biased');
+    [acfUnbiased{iSignal}, lags] = xcorr(signal{iSignal}, 'unbiased');
+    acfBiased{iSignal} = xcorr(signal{iSignal}, 'biased');
     % shift back to original frequency -> FFT -> zero-frequency shift
     psdAcfUnbiased{iSignal} = real(fftshift(fft(ifftshift(acfUnbiased{iSignal}))));
     psdAcfBiased{iSignal} = real(fftshift(fft(ifftshift(acfBiased{iSignal}))));
 end
+% normalised frequency corresponds to ACF
+fAcf = lags ./ (2 * nSamples) * fSample;
 %% ACF plots
 for iSignal = 1: nSignals
     figure;
-    plot(lag, acfUnbiased{iSignal});
+    plot(lags, acfUnbiased{iSignal});
     hold on;
-    plot(lag, acfBiased{iSignal});
+    plot(lags, acfBiased{iSignal});
     grid on; grid minor;
     legend('Unbiased', 'Biased');
     title(sprintf("Correlogram of %s", label(iSignal)));
@@ -51,12 +50,12 @@ end
 %% PSD plots
 for iSignal = 1: nSignals
     figure;
-    plot(fShift, psdAcfUnbiased{iSignal});
+    plot(fAcf, psdAcfUnbiased{iSignal});
     hold on;
-    plot(fShift, psdAcfBiased{iSignal});
+    plot(fAcf, psdAcfBiased{iSignal});
     grid on; grid minor;
     legend('Unbiased', 'Biased');
     title(sprintf("ACF spectral estimation of %s", label(iSignal)));
-    xlabel('Frequency (Hz)');
+    xlabel('Normalised frequency (\pi rad/sample)');
     ylabel('Power spectral density');
 end

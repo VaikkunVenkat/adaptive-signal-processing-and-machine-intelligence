@@ -1,43 +1,38 @@
 clear; close all; init;
 %% Initialisation
 load sunspot.dat
-% FFT points
-nFft = 256;
 % sampling time
 t = sunspot(:, 1);
-% signal
+% original signal
 xRaw = sunspot(:, 2);
-% number of samples
+% length of signal
 nSamples = length(t);
-% compare different windows
-window = [rectwin(nSamples), hamming(nSamples), blackman(nSamples)];
+% different windows
+window = {rectwin(nSamples), hamming(nSamples), blackman(nSamples)};
 label = ["rectangular", "Hamming", "Blackman"];
-% number of windows
-nWindows = size(window, 2);
-psdRaw = zeros(nFft + 1, nWindows);
-psdPreprocess = zeros(nFft + 1, nWindows);
-psdLogPreprocess = zeros(nFft + 1, nWindows);
-%% Spectral estimation with mean and trend removed
+nWindows = length(window);
+% declare vars
+psdRaw = cell(nWindows, 1);
+psdMeanDetrend = cell(nWindows, 1);
+psdLogMean = cell(nWindows, 1);
+%% Spectral estimation with preprocesses
 % remove mean and detrend
-xPreprocess = detrend(xRaw - mean(xRaw));
+xMeanDetrend = detrend(xRaw - mean(xRaw));
 % apply logarithm then subtract mean
-xLogPreprocess = log(xRaw + eps) - mean(log(xRaw + eps));
+xLogMean = log(xRaw + eps) - mean(log(xRaw + eps));
 %% Periodograms with different windows
 for iWindow = 1: nWindows
-    [psdRaw(:, iWindow), f] = pwelch(xRaw, window(:, iWindow));
-    psdPreprocess(:, iWindow) = pwelch(xPreprocess, window(:, iWindow));
-    psdLogPreprocess(:, iWindow) = pwelch(xLogPreprocess, window(:, iWindow));
+    [psdRaw{iWindow}, fDigital] = pwelch(xRaw, window{iWindow});
+    psdMeanDetrend{iWindow} = pwelch(xMeanDetrend, window{iWindow});
+    psdLogMean{iWindow} = pwelch(xLogMean, window{iWindow});
 end
-psdRawDb = 10 * log10(psdRaw);
-psdPreprocessDb = 10 * log10(psdPreprocess);
-psdLogPreprocessDb = 10 * log10(psdLogPreprocess);
 %% Data plots
 figure;
 plot(t, xRaw);
 hold on;
-plot(t, xPreprocess);
+plot(t, xMeanDetrend);
 hold on;
-plot(t, xLogPreprocess);
+plot(t, xLogMean);
 grid on; grid minor;
 legend('Raw', 'Mean-detrend', 'Log-mean');
 title('Sunspot time series');
@@ -46,11 +41,11 @@ ylabel('Number of sunspots');
 %% Result Plots
 for iWindow = 1: nWindows
     figure;
-    plot(f, psdRawDb(:, iWindow));
+    plot(fDigital, pow2db(psdRaw{iWindow}));
     hold on;
-    plot(f, psdPreprocessDb(:, iWindow));
+    plot(fDigital, pow2db(psdMeanDetrend{iWindow}));
     hold on;
-    plot(f, psdLogPreprocessDb(:, iWindow));
+    plot(fDigital, pow2db(psdLogMean{iWindow}));
     grid on; grid minor;
     legend('Raw', 'Mean-detrend', 'Log-mean');
     title(sprintf('Periodogram of sunspots with %s window', label(iWindow)));
