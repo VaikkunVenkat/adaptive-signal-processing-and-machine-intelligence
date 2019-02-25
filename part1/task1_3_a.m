@@ -6,6 +6,10 @@ fSample = 1e3;
 t = 0: 1 / fSample: (1 - 1 / fSample);
 % number of samples
 nSamples = length(t);
+% frequency range
+f = (0: nSamples - 1) * (fSample / nSamples);
+% symmetrical frequency
+fShift = -nSamples / 2: nSamples / (2 * nSamples - 1): nSamples / 2 - nSamples / (2 * nSamples - 1);
 % white Gaussian noise with power 1
 wgn = randn(1, nSamples);
 % frequencies of sine waves
@@ -47,12 +51,12 @@ end
 %% PSD plots
 for iSignal = 1: nSignals
     figure;
-    plot(lag, psdAcfUnbiased{iSignal});
+    plot(fShift, psdAcfUnbiased{iSignal});
     hold on;
-    plot(lag, psdAcfBiased{iSignal});
+    plot(fShift, psdAcfBiased{iSignal});
     grid on; grid minor;
     legend('Unbiased', 'Biased');
     title(sprintf("ACF spectral estimation of %s", label(iSignal)));
-    xlabel('Lag (sample)');
+    xlabel('Frequency (Hz)');
     ylabel('Power spectral density');
 end
