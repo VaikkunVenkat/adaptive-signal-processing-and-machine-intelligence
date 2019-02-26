@@ -46,10 +46,10 @@ for iLength = 1: length(nPoints)
     subplot(length(nPoints), 1, iLength);
     % individual realisations
     for iRp = 1: nRps
-        irPlot = plot(f, psdMusic{iLength, iRp}, 'linewidth', 2, 'color', 'k');
+        irPlot = plot(f, psdMusic{iLength, iRp}, 'color', 'k');
         hold on;
     end
-    meanPlot = plot(f, psdMusicMean{iLength}, 'linewidth', 2, 'color', 'r'); 
+    meanPlot = plot(f, psdMusicMean{iLength}, 'color', 'r'); 
     set(gca, 'xlim', [0.25 0.40]);
     grid on; grid minor;
     legend([irPlot, meanPlot], {'Realisations', 'Mean'});
@@ -63,10 +63,10 @@ for iLength = 1: length(nPoints)
     subplot(length(nPoints), 1, iLength);
     % individual realisations
     for iRp = 1: nRps
-        irPlot = plot(f, psdMusic{iLength, iRp}, 'linewidth', 2, 'color', 'k');
+        irPlot = plot(f, psdMusic{iLength, iRp}, 'color', 'k');
         hold on;
     end
-    stdPlot = plot(f, psdMusicStd{iLength}, 'linewidth', 2, 'color', 'm'); 
+    stdPlot = plot(f, psdMusicStd{iLength}, 'color', 'm'); 
     set(gca, 'xlim', [0.25 0.40]);
     grid on; grid minor;
     legend([irPlot, stdPlot], {'Realisations', 'Standard deviation'});

@@ -13,8 +13,7 @@ wgn = randn(1, nSamples);
 % noisy sinusoidal signal
 noisySine = sin(2 * pi * freqSine(1) * t) + sin(2 * pi * freqSine(2) * t) + randn(1, nSamples);
 % filtered (low-pass) WGN
-a = 1; b = [1 1];
-wgnFilter = filter(b, a, wgn);
+wgnFilter = filter([1 1], 1, wgn);
 % signal set
 signal = {wgn, noisySine, wgnFilter};
 label = ["white Gaussian noise", "noisy sinusoidal", "filtered white Gaussian noise"];

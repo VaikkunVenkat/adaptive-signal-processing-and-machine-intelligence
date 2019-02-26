@@ -22,7 +22,7 @@ xMeanDetrend = detrend(xRaw - mean(xRaw));
 xLogMean = log(xRaw + eps) - mean(log(xRaw + eps));
 %% Periodograms with different windows
 for iWindow = 1: nWindows
-    [psdRaw{iWindow}, fDigital] = pwelch(xRaw, window{iWindow});
+    [psdRaw{iWindow}, w] = pwelch(xRaw, window{iWindow});
     psdMeanDetrend{iWindow} = pwelch(xMeanDetrend, window{iWindow});
     psdLogMean{iWindow} = pwelch(xLogMean, window{iWindow});
 end
@@ -41,11 +41,11 @@ ylabel('Number of sunspots');
 %% Result Plots
 for iWindow = 1: nWindows
     figure;
-    plot(fDigital, pow2db(psdRaw{iWindow}));
+    plot(w, pow2db(psdRaw{iWindow}));
     hold on;
-    plot(fDigital, pow2db(psdMeanDetrend{iWindow}));
+    plot(w, pow2db(psdMeanDetrend{iWindow}));
     hold on;
-    plot(fDigital, pow2db(psdLogMean{iWindow}));
+    plot(w, pow2db(psdLogMean{iWindow}));
     grid on; grid minor;
     legend('Raw', 'Mean-detrend', 'Log-mean');
     title(sprintf('Periodogram of sunspots with %s window', label(iWindow)));
