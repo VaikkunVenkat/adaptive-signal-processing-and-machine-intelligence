@@ -13,7 +13,7 @@ nFft = fSample / fResolution;
 tWindow = [10 5 1];
 % remove mean
 poz = eeg.POz - mean(eeg.POz);
-% overlap length
+% window overlap length
 nOverlap = 0;
 % declare vars
 psdAvg = cell(length(tWindow), 1);
@@ -34,7 +34,7 @@ grid on; grid minor;
 legend('Standard');
 title('Periodogram of EEG: standard method');
 xlabel('Frequency (Hz)');
-ylabel('Power spectral density (dB)');
+ylabel('Power spectral density (dB/Hz)');
 ylim([-150 -90]);
 % Bartlett
 subplot(2, 1, 2);
@@ -48,4 +48,4 @@ grid on; grid minor;
 legend(legendStr);
 title('Periodogram of EEG: Bartlett method');
 xlabel('Frequency (Hz)');
-ylabel('Power spectral density (dB)');
+ylabel('Power spectral density (dB/Hz)');
