@@ -1,15 +1,17 @@
 clear; close all; init;
 %% Initialisation
 pcr = load('data/PCR_Data/PCAPCR.mat');
+cleanSignal = pcr.X;
+noisySignal = pcr.Xnoise;
 %% SVD decomposition
 % singular value of clean signal
-svClean = svd(pcr.X);
+svClean = svd(cleanSignal);
 % rank of clean signal
-rankClean = rank(pcr.X);
+rankClean = rank(cleanSignal);
 % singular value of noisy signal
-svNoisy = svd(pcr.Xnoise);
+svNoisy = svd(noisySignal);
 % rank of clean signal
-rankNoisy = rank(pcr.Xnoise);
+rankNoisy = rank(noisySignal);
 % square error between singular values
 svError = abs(svClean - svNoisy) .^ 2;
 %% Result plot
