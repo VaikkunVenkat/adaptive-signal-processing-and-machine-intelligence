@@ -43,11 +43,11 @@ end
 % PSD: ground truth vs AR estimation
 for iOrder = 1: nOrders
     subplot(nOrders, 1, iOrder);
-    plot(f, pow2db(psdAr{iOrder}), 'r');
-    hold on;
     plot(f, pow2db(psd), 'k');
+    hold on;
+    plot(f, pow2db(psdAr{iOrder}), 'r');
     grid on; grid minor;
-    legend('AR', 'Ground truth');
+    legend('Ground truth', sprintf('AR of order %d', orderAr(iOrder)));
     title(sprintf('PSD estimate of signal of length %d by AR model with order %d', nSamples, orderAr(iOrder)));
     xlabel('Normalised frequency (\pi rad/sample)');
     ylabel('PSD (dB)');
@@ -56,6 +56,7 @@ end
 figure;
 plot(orderAr, pow2db(varEst), 'm-x');
 grid on; grid minor;
+legend('Variance');
 title('Relationship between AR order and noise power');
 xlabel('Order of AR model');
 ylabel('Noise power (dB)');

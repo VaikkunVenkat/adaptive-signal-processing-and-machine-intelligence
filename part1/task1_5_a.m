@@ -3,8 +3,8 @@ clear; close all; init;
 ecg = load('data/ECG_Data/ECG_Data.mat');
 % sampling frequency
 fSample = ecg.fsRRI;
-% RRI data
-rri = {ecg.xRRI1 ecg.xRRI2 ecg.xRRI3};
+% RRI data after preprocessing (remove mean and detrend)
+rri = {detrend(ecg.xRRI1 - mean(ecg.xRRI1)) detrend(ecg.xRRI2 - mean(ecg.xRRI2)) detrend(ecg.xRRI3 - mean(ecg.xRRI3))};
 nRris = length(rri);
 label = ["normal", "fast", "slow"];
 % duration of window
@@ -17,6 +17,7 @@ nOverlap = 0;
 % declare vars
 psdStd = cell(nRris, 1);
 psdAvg = cell(nRris, length(tWindow));
+legendStr = cell(1, length(tWindow) + 1);
 %% Standard periodogram
 for iRri = 1: nRris
     nSamples = length(rri{iRri});
@@ -31,32 +32,23 @@ for iRri = 1: nRris
     end
 end
 %% Result plot
-% % standard
-% figure;
-% for iRri = 1: nRris
-%     subplot(nRris, 1, iRri);
-%     plot(fAnalog, pow2db(psdStd{iRri}));
-%     grid on; grid minor;
-%     legend(label(iRri));
-%     title(sprintf('Periodogram by standard method for %s RRI', label(iRri)));
-%     xlabel('Frequency (Hz)');
-%     ylabel('PSD (dB/Hz)');
-% end
-% % Bartlett with different window length
 figure;
 for iRri = 1: nRris
     subplot(nRris, 1, iRri);
     % standard
     plot(fAnalog, pow2db(psdStd{iRri}));
     hold on;
+    legendStr{1} = 'Standard';
     % Bartlett with different window length
     for iWindow = 1: length(tWindow)
         plot(fAnalog, pow2db(psdAvg{iRri, iWindow}));
         hold on;
+        legendStr{iWindow + 1} = sprintf('Bartlett - window length %d', tWindow(iWindow));
     end
     grid on; grid minor;
-    legend('Standard', sprintf('Bartlett with window length %d sec', tWindow(1)), sprintf('Bartlett with window length %d sec', tWindow(2)));
+    legend(legendStr);
     title(sprintf('Periodogram by standard and Bartlett methods for %s RRI', label(iRri)));
     xlabel('Frequency (Hz)');
     ylabel('PSD (dB/Hz)');
+    ylim([-80 0]);
 end
