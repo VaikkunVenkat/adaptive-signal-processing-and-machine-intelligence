@@ -1,20 +1,21 @@
 clear; close all; init;
 %% Initialisation
 pcr = load('data/PCR_Data/PCAPCR.mat');
-cleanSignal = pcr.X;
-noisySignal = pcr.Xnoise;
+xClean = pcr.X;
+xTrain = pcr.Xnoise;
 %% SVD decomposition
 % singular value of clean signal
-[uClean, svClean, vClean] = svd(cleanSignal);
+[uClean, sClean, vClean] = svd(xClean);
 % rank of clean signal
-rankClean = rank(cleanSignal);
+rankClean = rank(xClean);
 % singular value of noisy signal
-[uNoisy, svNoisy, vNoisy] = svd(noisySignal);
-% rank of clean signal
-rankNoisy = rank(noisySignal);
+[uTrain, sTrain, vTrain] = svd(xTrain);
+% rank of noisy signal
+rankTrain = rank(xTrain);
 %% Reconstruct approximation
-% reconstruct with first rankClean singular values and singular vectors
-denoisedSignal = uNoisy(:, 1: rankClean) * svNoisy(1: rankClean, 1: rankClean) * vNoisy(:, 1: rankClean)';
+% reconstruct with first few singular values and singular vectors within
+% signal subspace
+xTrainDenoised = uTrain(:, 1: rankClean) * sTrain(1: rankClean, 1: rankClean) * vTrain(:, 1: rankClean)';
 % error norm by columns
-errorNoise = norm(cleanSignal - noisySignal, 'fro');
-errorDenoise = norm(cleanSignal - denoisedSignal, 'fro');
+errorNoise = norm(xClean - xTrain, 'fro');
+errorDenoise = norm(xClean - xTrainDenoised, 'fro');
