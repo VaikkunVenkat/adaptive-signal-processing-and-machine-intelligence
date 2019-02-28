@@ -13,21 +13,22 @@ sTrain = svd(xTrain);
 % rank of clean signal
 rankTrain = rank(xTrain);
 % square error between singular values
-sError = abs(sClean - sTrain) .^ 2;
+error = abs(sClean - sTrain) .^ 2;
 %% Result plot
 % singular values
 figure;
-stem(sClean);
+subplot(2, 1, 1);
+stem(sTrain, 'k-x');
 hold on;
-stem(sTrain);
-legend('Clean signal', 'Noisy signal');
-title('Singular values of clean and noisy signal');
+stem(sClean, 'r--o');
+legend('Noisy signal', 'Clean signal');
+title('Singular values of noisy and clean signal');
 xlabel('Singular value index');
 ylabel('Magnitude');
 % square error
-figure;
-stem(sError, 'k');
+subplot(2, 1, 2);
+stem(error, 'm:s');
 legend('Square error');
-title('Square error between singular values of clean and noisy signal');
-xlabel('Singular value index');
-ylabel('Magnitude square');
+title('Square error between singular values of noisy and clean signal');
+xlabel('Subspace dimension index');
+ylabel('Error magnitude square');

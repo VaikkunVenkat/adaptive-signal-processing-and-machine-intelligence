@@ -17,5 +17,14 @@ rankTrain = rank(xTrain);
 % signal subspace
 xTrainDenoised = uTrain(:, 1: rankClean) * sTrain(1: rankClean, 1: rankClean) * vTrain(:, 1: rankClean)';
 % error norm by columns
-errorNoise = norm(xClean - xTrain, 'fro');
-errorDenoise = norm(xClean - xTrainDenoised, 'fro');
+errorNoise = abs(vecnorm(xClean - xTrain)) .^ 2;
+errorDenoise = abs(vecnorm(xClean - xTrainDenoised)) .^ 2;
+%% Result plot
+figure;
+stem(errorNoise, 'k-x');
+hold on;
+stem(errorDenoise, 'r--o');
+legend('Noisy signal', 'Denoised signal');
+title('Difference between noisy and denoised signal compared with clean signal');
+xlabel('Variable index');
+ylabel('Error magnitude square');

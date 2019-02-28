@@ -13,8 +13,8 @@ coefOls = (xTrain' * xTrain) \ xTrain' * yTrain;
 yTrainOls = xTrain * coefOls;
 yTestOls = xTest * coefOls;
 % errors
-errorTrainOls = norm(yTrain - yTrainOls, 'fro');
-errorTestOls = norm(yTest - yTestOls, 'fro');
+errorTrainOls = abs(vecnorm(yTrain - yTrainOls)) .^ 2;
+errorTestOls = abs(vecnorm(yTest - yTestOls)) .^ 2;
 %% Principle component regression (PCR)
 % rank of clean signal
 rankClean = rank(xClean);
@@ -30,18 +30,25 @@ coefPcr = vTrain(:, 1: rankClean) / sTrain(1: rankClean, 1: rankClean) * uTrain(
 yTrainPcrDenoised = xTrainDenoised * coefPcr;
 yTestPcrDenoised = xTestDenoised * coefPcr;
 % errors
-errorTrainPcr = norm(yTrain - yTrainPcrDenoised, 'fro');
-errorTestPcr = norm(yTest - yTestPcrDenoised, 'fro');
+errorTrainPcr = abs(vecnorm(yTrain - yTrainPcrDenoised)) .^ 2;
+errorTestPcr = abs(vecnorm(yTest - yTestPcrDenoised)) .^ 2;
 %% Result plot
-% % training set
-% figure;
-% plot(yTrain);
-% hold on;
-% plot(yTrainOls);
-% hold on;
-% plot(yTrainPcrDenoised);
-% grid on; grid minor;
-% legend('Original', 'OLS', 'PCR');
-% title('Comparison of original and reproduced data');
-% xlabel('Singular value index');
-% ylabel('Magnitude');
+% training set
+figure;
+subplot(2, 1, 1);
+stem(errorTrainOls, 'r-o');
+hold on;
+stem(errorTrainPcr, 'b--x');
+legend('OLS', 'PCR');
+title('Difference between reproduced and original training data by OLS and PCR');
+xlabel('Variable index');
+ylabel('Error magnitude square');
+% testing set
+subplot(2, 1, 2);
+stem(errorTestOls, 'r-o');
+hold on;
+stem(errorTestPcr, 'b--x');
+legend('OLS', 'PCR');
+title('Difference between reproduced and original testing data by OLS and PCR');
+xlabel('Variable index');
+ylabel('Error magnitude square');
