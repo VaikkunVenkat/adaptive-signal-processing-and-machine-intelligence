@@ -27,5 +27,7 @@ for iSample = 1: nSamples
     error(iSample) = rawData(iSample) - prediction(iSample);
     wLms(:, iSample + 1) = (1 - step * leak) * wLms(:, iSample) + step * error(iSample) * prevGroup(:, iSample);
 end
+% remove the first term
+wLms = wLms(:, 2: end);
 end
 
