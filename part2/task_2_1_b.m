@@ -1,38 +1,40 @@
 clear; close all; init;
 %% Initialisation
-% normalised sampling frequency
-fSample = 1;
 % length of signal
 nSamples = 1e3;
 % number of realisations
 nRealisations = 1e2;
 % coefficients of AR process
-orderAr = 2;
 coefAr = [0.1 0.8];
+nOrders = length(coefAr);
 variance = 0.25;
 delay = 1;
 % learning step size
-step = [0.05 0.01];
+step = [0.05; 0.01];
 nSteps = length(step);
 % LMS leakage
 leak = 0;
 %% Generate signal
 % generate AR model
 arModel = arima('AR', coefAr, 'Variance', variance, 'Constant', 0);
-% rows correspond to realisations
+% simulate signal by AR model
 arSignal = simulate(arModel, nSamples, 'NumPaths', nRealisations);
+% rows correspond to realisations
 arSignal = arSignal';
 %% LMS adaptive predictor
 error = cell(nSteps, nRealisations);
-avgErrorSquare = cell(nSteps, 1);
+errorSquareAvg = cell(nSteps, 1);
 for iStep = 1: nSteps
     for iRealisation = 1: nRealisations
-        % a certain realisation
-        rawData = arSignal(iRealisation, :);
-        [prevGroup] = preprocessing(rawData, orderAr, delay);
-        [~, ~, error{iStep, iRealisation}] = leaky_lms(prevGroup, rawData, step(iStep), leak);
+        % certain realisation
+        signal = arSignal(iRealisation, :);
+        % grouped samples to approximate the value at certain instant
+        [group] = preprocessing(signal, nOrders, delay);
+        % error by LMS estimation
+        [~, ~, error{iStep, iRealisation}] = leaky_lms(group, signal, step(iStep), leak);
     end
-    avgErrorSquare{iStep} = mean(cat(3, error{iStep, :}) .^ 2, 3);
+    % average error square
+    errorSquareAvg{iStep} = mean(cat(3, error{iStep, :}) .^ 2, 3);
 end
 %% Result plot
 legendStr = cell(nSteps, 1);
@@ -53,7 +55,7 @@ ylabel('Squared Error (dB)');
 % average value
 subplot(2, 1, 2);
 for iStep = 1: nSteps
-    plot(pow2db(avgErrorSquare{iStep}));
+    plot(pow2db(errorSquareAvg{iStep}));
     legendStr{iStep} = sprintf('Step Size %.2f', step(iStep));
     hold on;
 end

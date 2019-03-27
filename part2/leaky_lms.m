@@ -1,33 +1,38 @@
-function [wLms, prediction, error] = leaky_lms(prevGroup, rawData, step, leak)
+function [weightLms, prediction, error] = leaky_lms(group, signal, step, leak)
 % Function:
-%   - LMS adaptive predictor based on AR model
+%   - LMS adaptive predictor based on ARMA model
 %
 % InputArg(s):
-%   - prevGroup: previous samples to predict the current signal value
-%   - rawData: original signal
+%   - group: previous samples to predict the current signal value
+%   - signal: original signal
 %   - step: learning step size
 %   - leak: leakage coefficient
 %
 % OutputArg(s):
-%   - wLms: weight of LMS filter
+%   - weightLms: weight of LMS filter
 %   - prediction: filter output
 %   - error: prediction error vector
 %
 % Comments:
-%   - zero-padding is necessary
+%   - may converge to incorrect values if autocovariance matrix is
+%   rank-deficient
 %
 % Author & Date: Yang (i@snowztail.com) - 26 Mar 19
 
-[orderAr, nSamples] = size(prevGroup);
-wLms = zeros(orderAr, nSamples);
+[nOrders, nSamples] = size(group);
+weightLms = zeros(nOrders, nSamples);
 prediction = zeros(1, nSamples);
 error = zeros(1, nSamples);
+
 for iSample = 1: nSamples
-    prediction(iSample) = wLms(:, iSample)' * prevGroup(:, iSample);
-    error(iSample) = rawData(iSample) - prediction(iSample);
-    wLms(:, iSample + 1) = (1 - step * leak) * wLms(:, iSample) + step * error(iSample) * prevGroup(:, iSample);
+    % predicted signal based on current weight and previous samples
+    prediction(iSample) = weightLms(:, iSample)' * group(:, iSample);
+    % prediction error
+    error(iSample) = signal(iSample) - prediction(iSample);
+    % update weight
+    weightLms(:, iSample + 1) = (1 - step * leak) * weightLms(:, iSample) + step * error(iSample) * group(:, iSample);
 end
 % remove the first term
-wLms = wLms(:, 2: end);
+weightLms = weightLms(:, 2: end);
 end
 
