@@ -35,26 +35,31 @@ for iStep = 1: nSteps
     avgErrorSquare{iStep} = mean(cat(3, error{iStep, :}) .^ 2, 3);
 end
 %% Result plot
+legendStr = cell(nSteps, 1);
 figure;
 % particular realisation
 subplot(2, 1, 1);
-plot(pow2db(error{1, end}.^2), 'r');
-hold on;
-plot(pow2db(error{2, end}.^2), 'k');
+for iStep = 1: nSteps
+    plot(pow2db(error{iStep, end}.^2));
+    legendStr{iStep} = sprintf('Step Size %.2f', step(iStep));
+    hold on;
+end
 hold off;
 grid on; grid minor;
-legend(sprintf('Step Size %.2f', step(1)), sprintf('Step Size %.2f', step(2)), 'location', 'southeast');
-title('Squared error of one realisation by adaptive LMS with second-order AR model');
+legend(legendStr, 'location', 'southeast');
+title('Squared error by adaptive LMS with second-order AR model: example');
 xlabel('Time (sample)');
 ylabel('Squared Error (dB)');
 % average value
 subplot(2, 1, 2);
-plot(pow2db(avgErrorSquare{1}), 'r');
-hold on;
-plot(pow2db(avgErrorSquare{2}), 'k');
+for iStep = 1: nSteps
+    plot(pow2db(avgErrorSquare{iStep}));
+    legendStr{iStep} = sprintf('Step Size %.2f', step(iStep));
+    hold on;
+end
 hold off;
 grid on; grid minor;
-legend(sprintf('Step Size %.2f', step(1)), sprintf('Step Size %.2f', step(2)), 'location', 'northeast');
-title('Mean squared error by adaptive LMS with second-order AR model');
+legend(legendStr, 'location', 'northeast');
+title('Squared error by adaptive LMS with second-order AR model: mean');
 xlabel('Time (sample)');
 ylabel('Squared Error (dB)');
