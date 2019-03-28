@@ -1,6 +1,7 @@
 function [weightGass, prediction, error] = gass(group, signal, step, rate, leak, algorithm)
 % Function:
-%   - GASS LMS predictor with adaptive step size based on ARMA model
+%   - GASS (gradient adaptive stepsize) LMS predictor with adaptive step 
+%   size based on ARMA model
 %
 % InputArg(s):
 %   - group: previous samples to predict the current signal value
@@ -21,11 +22,11 @@ function [weightGass, prediction, error] = gass(group, signal, step, rate, leak,
 % Author & Date: Yang (i@snowztail.com) - 27 Mar 19
 
 [nOrders, nSamples] = size(group);
-weightGass = zeros(nOrders, nSamples);
+weightGass = zeros(nOrders, nSamples + 1);
 prediction = zeros(1, nSamples);
 error = zeros(1, nSamples);
-costFun = zeros(nOrders, nSamples);
-step(nSamples) = 0;
+costFun = zeros(nOrders, nSamples + 1);
+step(nSamples + 1) = 0;
 
 for iSample = 1: nSamples
     % predicted signal based on current weight and previous samples

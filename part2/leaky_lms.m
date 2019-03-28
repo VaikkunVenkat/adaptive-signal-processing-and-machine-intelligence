@@ -1,6 +1,6 @@
 function [weightLms, prediction, error] = leaky_lms(group, signal, step, leak)
 % Function:
-%   - LMS adaptive predictor based on ARMA model
+%   - leaky LMS adaptive predictor based on ARMA model
 %
 % InputArg(s):
 %   - group: previous samples to predict the current signal value
@@ -20,7 +20,7 @@ function [weightLms, prediction, error] = leaky_lms(group, signal, step, leak)
 % Author & Date: Yang (i@snowztail.com) - 26 Mar 19
 
 [nOrders, nSamples] = size(group);
-weightLms = zeros(nOrders, nSamples);
+weightLms = zeros(nOrders, nSamples + 1);
 prediction = zeros(1, nSamples);
 error = zeros(1, nSamples);
 
