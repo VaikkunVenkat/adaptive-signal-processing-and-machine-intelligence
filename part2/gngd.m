@@ -1,4 +1,4 @@
-function [weightGngd, prediction, error] = gngd(group, signal, step, leak, rate)
+function [weightGngd, prediction, error] = gngd(group, signal, step, rate, leak)
 % Function:
 %   - GNGD (generalised normalised gradient descent) NLMS predictor with 
 %   normalised step size based on ARMA model
@@ -7,8 +7,8 @@ function [weightGngd, prediction, error] = gngd(group, signal, step, leak, rate)
 %   - group: previous samples to predict the current signal value
 %   - signal: original signal
 %   - step: initial step size
-%   - leak: leakage coefficient
 %   - rate: learning rate
+%   - leak: leakage coefficient
 %
 % OutputArg(s):
 %   - weightGngd: weight of GNGD NLMS filter
@@ -22,8 +22,8 @@ function [weightGngd, prediction, error] = gngd(group, signal, step, leak, rate)
 %
 % Author & Date: Yang (i@snowztail.com) - 28 Mar 19
 
-[nOrders, nSamples] = size(group);
-weightGngd = zeros(nOrders, nSamples + 1);
+[order, nSamples] = size(group);
+weightGngd = zeros(order, nSamples + 1);
 prediction = zeros(1, nSamples);
 error = zeros(1, nSamples);
 regular = ones(1, nSamples + 1) / step;

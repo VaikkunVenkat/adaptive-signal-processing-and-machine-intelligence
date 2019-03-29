@@ -3,11 +3,14 @@ clear; close all; init;
 % length of signal
 nSamples = 1e3;
 % number of realisations
-nRealisations = 1e2;
+nRps = 1e2;
 % coefficients of MA process
 coefMa = 0.9;
-nOrders = length(coefMa);
+% variance of innovations
+orderMa = length(coefMa);
+% variance of innovations
 variance = 0.5;
+% delay for decorrelation
 delay = 1;
 % initial step size for GASS and GNGD
 stepGass = 0.1;
@@ -23,63 +26,54 @@ benveniste.param = NaN;
 % generate MA model
 maModel = arima('MA', coefMa, 'Variance', variance, 'Constant', 0);
 % simulate signal by MA model
-[maSignal, innovation] = simulate(maModel, nSamples, 'NumPaths', nRealisations);
-% rows correspond to realisations
+[maSignal, innovation] = simulate(maModel, nSamples, 'NumPaths', nRps);
+% MA signal
 maSignal = maSignal';
+% white noise
 innovation = innovation';
-%% Benveniste GASS
-weightBenveniste = cell(1, nRealisations);
-errorBenveniste = cell(1, nRealisations);
-for iRealisation = 1: nRealisations
-    % delayed signal
-    lagSignal = [zeros(1, delay), maSignal(iRealisation, 1: end - delay)];
-    % grouped samples to approximate the value at certain instant
-    [group] = preprocessing(innovation(iRealisation, :), nOrders + 1, delay);
-    % Benveniste
-    [weightBenveniste{iRealisation}, ~, errorBenveniste{iRealisation}] = gass(group, lagSignal, stepGass, rate, leak, benveniste);
+%% Benveniste GASS and GNGD
+weightGass = cell(1, nRps);
+errorGass = cell(1, nRps);
+weightGngd = cell(1, nRps);
+errorGngd = cell(1, nRps);
+for iRp = 1: nRps
+    % desired signal with unit delay
+    signal = [zeros(1, delay), maSignal(iRp, 1: end - delay)];
+    % order plus one to capture current innovation
+    [group] = preprocessing(innovation(iRp, :), orderMa + 1, delay);
+    % GASS algorithm
+    [weightGass{iRp}, ~, errorGass{iRp}] = gass(group, signal, stepGass, rate, leak, benveniste);
+    % GNGD algorithm
+    [weightGngd{iRp}, ~, errorGngd{iRp}] = gngd(group, signal, stepGngd, rate, leak);
 end
 % average weights
-weightBenvenisteAvg = mean(cat(3, weightBenveniste{:}), 3);
-% average errors square
-errorSquareBenvenisteAvg = mean(cat(3, errorBenveniste{:}) .^ 2, 3);
-%% GNGD
-weightGngd = cell(1, nRealisations);
-errorGngd = cell(1, nRealisations);
-for iRealisation = 1: nRealisations
-    % delayed signal
-    lagSignal = [zeros(1, delay), maSignal(iRealisation, 1: end - delay)];
-    % grouped samples to approximate the value at certain instant
-    [group] = preprocessing(innovation(iRealisation, :), nOrders + 1, delay);
-    % weight by NLMS
-    [weightGngd{iRealisation}, ~, errorGngd{iRealisation}] = gngd(group, lagSignal, stepGngd, leak, rate);
-end
-% average weight
+weightGassAvg = mean(cat(3, weightGass{:}), 3);
 weightGngdAvg = mean(cat(3, weightGngd{:}), 3);
-% average error square
-errorSquareNlmsAvg = mean(cat(3, errorGngd{:}) .^ 2, 3);
+% average errors square
+errorSquareGassAvg = mean(cat(3, errorGass{:}) .^ 2, 3);
+errorSquareGngdAvg = mean(cat(3, errorGngd{:}) .^ 2, 3);
 %% Result plot
 % weight error
 figure;
-plot(coefMa - weightBenvenisteAvg(2, :), 'k-');
+plot(coefMa - weightGassAvg(2, :), 'k-');
 hold on;
 plot(coefMa - weightGngdAvg(2, :), 'r-.');
 hold off;
 grid on; grid minor;
 legend('Benveniste GASS', 'GNGD', 'location', 'northeast');
-title('Weight error curves for adaptive and normalised step sizes by GASS and GNGD');
+title('Weight error curves by GASS and GNGD');
 xlabel('Number of iterations (sample)');
 ylabel('Weight error');
 xlim([0 200]);
 ylim([0 1]);
-
 % average error square
 figure;
-plot(pow2db(errorSquareBenvenisteAvg), 'k-');
+plot(pow2db(errorSquareGassAvg), 'k-');
 hold on;
-plot(pow2db(errorSquareNlmsAvg), 'r-.');
+plot(pow2db(errorSquareGngdAvg), 'r-.');
 hold off;
 grid on; grid minor;
 legend('Benveniste GASS', 'GNGD', 'location', 'northeast');
-title('Squared error curves for adaptive and normalised step sizes by GASS and GNGD');
+title('Error square curves by GASS and GNGD');
 xlabel('Number of iterations (sample)');
 ylabel('Squared error (dB)');

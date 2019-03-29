@@ -3,14 +3,18 @@ clear; close all; init;
 % length of signal
 nSamples = 1e3;
 % number of realisations
-nRealisations = 1e2;
+nRps = 1e2;
 % coefficients of AR process
 coefAr = [0.1 0.8];
-nOrders = length(coefAr);
+% order of AR
+orderAr = length(coefAr);
+% variance of innovations
 variance = 0.25;
+% delay for decorrelation
 delay = 1;
 % learning step size
 step = [0.05; 0.01];
+% number of steps
 nSteps = length(step);
 % LMS leakage
 leak = 0;
@@ -20,22 +24,21 @@ nDiscards = 5e2;
 % generate AR model
 arModel = arima('AR', coefAr, 'Variance', variance, 'Constant', 0);
 % simulate signal by AR model
-arSignal = simulate(arModel, nSamples, 'NumPaths', nRealisations);
+arSignal = simulate(arModel, nSamples, 'NumPaths', nRps);
 % rows correspond to realisations
 arSignal = arSignal';
 %% LMS adaptive predictor
-error = cell(nSteps, nRealisations);
-mse = zeros(nSteps, nRealisations);
+mse = zeros(nSteps, nRps);
 for iStep = 1: nSteps
-    for iRealisation = 1: nRealisations
+    for iRp = 1: nRps
         % certain realisation
-        signal = arSignal(iRealisation, :);
+        signal = arSignal(iRp, :);
         % grouped samples to approximate the value at certain instant
-        [group] = preprocessing(signal, nOrders, delay);
+        [group] = preprocessing(signal, orderAr, delay);
         % error by LMS estimation
-        [~, ~, error{iStep, iRealisation}] = leaky_lms(group, signal, step(iStep), leak);
+        [~, ~, error] = leaky_lms(group, signal, step(iStep), leak);
         % mean square error in stable state
-        mse(iStep, iRealisation) = mean(error{iStep, iRealisation}(nDiscards + 1: end) .^ 2);
+        mse(iStep, iRp) = mean(error(nDiscards + 1: end) .^ 2);
     end
 end
 % excess mean square error
@@ -47,3 +50,6 @@ misadj = emse / variance;
 cov = [25/27, 25/54; 25/54, 25/27];
 % approximated misadjustment
 misadjApprox = step / 2 * trace(cov);
+% print results
+fprintf('Misadjustment: %.4f    %.4f\n', misadj);
+fprintf('Approximated misadjustment: %.4f   %.4f\n', misadjApprox);

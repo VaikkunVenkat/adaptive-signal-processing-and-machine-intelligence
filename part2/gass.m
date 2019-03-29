@@ -21,11 +21,11 @@ function [weightGass, prediction, error] = gass(group, signal, step, rate, leak,
 %
 % Author & Date: Yang (i@snowztail.com) - 27 Mar 19
 
-[nOrders, nSamples] = size(group);
-weightGass = zeros(nOrders, nSamples + 1);
+[order, nSamples] = size(group);
+weightGass = zeros(order, nSamples + 1);
 prediction = zeros(1, nSamples);
 error = zeros(1, nSamples);
-costFun = zeros(nOrders, nSamples + 1);
+costFun = zeros(order, nSamples + 1);
 step(nSamples + 1) = 0;
 
 for iSample = 1: nSamples
@@ -40,7 +40,7 @@ for iSample = 1: nSamples
     % update cost function
     switch algorithm.name
         case 'Benveniste'
-            costFun(:, iSample + 1) = (eye(nOrders) - step(iSample) * group(:, iSample) * group(:, iSample)') * costFun(:, iSample) + error(iSample) * group(:, iSample);
+            costFun(:, iSample + 1) = (eye(order) - step(iSample) * group(:, iSample) * group(:, iSample)') * costFun(:, iSample) + error(iSample) * group(:, iSample);
         case 'Ang'
             costFun(:, iSample + 1) = algorithm.param * costFun(:, iSample) + error(iSample) * group(:, iSample);
         case 'Matthews'

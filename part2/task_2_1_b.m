@@ -3,14 +3,18 @@ clear; close all; init;
 % length of signal
 nSamples = 1e3;
 % number of realisations
-nRealisations = 1e2;
-% coefficients of AR process
+nRps = 1e2;
+% coefficients of AR process (correspond to lags)
 coefAr = [0.1 0.8];
-nOrders = length(coefAr);
+% order of AR
+orderAr = length(coefAr);
+% variance of innovations
 variance = 0.25;
+% delay for decorrelation
 delay = 1;
 % learning step size
 step = [0.05; 0.01];
+% number of steps
 nSteps = length(step);
 % LMS leakage
 leak = 0;
@@ -18,20 +22,20 @@ leak = 0;
 % generate AR model
 arModel = arima('AR', coefAr, 'Variance', variance, 'Constant', 0);
 % simulate signal by AR model
-arSignal = simulate(arModel, nSamples, 'NumPaths', nRealisations);
+arSignal = simulate(arModel, nSamples, 'NumPaths', nRps);
 % rows correspond to realisations
 arSignal = arSignal';
 %% LMS adaptive predictor
-error = cell(nSteps, nRealisations);
+error = cell(nSteps, nRps);
 errorSquareAvg = cell(nSteps, 1);
 for iStep = 1: nSteps
-    for iRealisation = 1: nRealisations
+    for iRp = 1: nRps
         % certain realisation
-        signal = arSignal(iRealisation, :);
+        signal = arSignal(iRp, :);
         % grouped samples to approximate the value at certain instant
-        [group] = preprocessing(signal, nOrders, delay);
+        [group] = preprocessing(signal, orderAr, delay);
         % error by LMS estimation
-        [~, ~, error{iStep, iRealisation}] = leaky_lms(group, signal, step(iStep), leak);
+        [~, ~, error{iStep, iRp}] = leaky_lms(group, signal, step(iStep), leak);
     end
     % average error square
     errorSquareAvg{iStep} = mean(cat(3, error{iStep, :}) .^ 2, 3);
@@ -49,7 +53,7 @@ end
 hold off;
 grid on; grid minor;
 legend(legendStr, 'location', 'southeast');
-title('Squared error by adaptive LMS with second-order AR model: example');
+title('Error square by adaptive LMS with second-order AR model: example');
 xlabel('Time (sample)');
 ylabel('Squared Error (dB)');
 % average value
@@ -62,6 +66,6 @@ end
 hold off;
 grid on; grid minor;
 legend(legendStr, 'location', 'northeast');
-title('Squared error by adaptive LMS with second-order AR model: mean');
+title('Error square by adaptive LMS with second-order AR model: mean');
 xlabel('Time (sample)');
 ylabel('Squared Error (dB)');

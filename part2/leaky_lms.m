@@ -4,7 +4,7 @@ function [weightLms, prediction, error] = leaky_lms(group, signal, step, leak)
 %
 % InputArg(s):
 %   - group: previous samples to predict the current signal value
-%   - signal: original signal
+%   - signal: desired signal
 %   - step: learning step size
 %   - leak: leakage coefficient
 %
@@ -19,8 +19,8 @@ function [weightLms, prediction, error] = leaky_lms(group, signal, step, leak)
 %
 % Author & Date: Yang (i@snowztail.com) - 26 Mar 19
 
-[nOrders, nSamples] = size(group);
-weightLms = zeros(nOrders, nSamples + 1);
+[order, nSamples] = size(group);
+weightLms = zeros(order, nSamples + 1);
 prediction = zeros(1, nSamples);
 error = zeros(1, nSamples);
 

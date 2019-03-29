@@ -11,19 +11,19 @@ ampSine = 1;
 % normalised frequencies of sine waves
 freqSine = 5e-3;
 % clean sinusoidal signal
-sineWave = ampSine * sin(2 * pi * freqSine * t);
+signal = ampSine * sin(2 * pi * freqSine * t);
 % number of realisations
-nRealisations = 1e2;
-% coefficients of noise as MA process
+nRps = 1e2;
+% coefficients of noise as MA process (correspond to lags)
 coefMa = [0 0.5];
-nOrders = length(coefMa);
+% variance of innovations
 variance = 1;
 % learning step size
 step = 0.01;
 % max delay of the linear predictor
 nDelays = 5;
-% filter length (order)
-length = 5;
+% filter order (length)
+orderFilter = 5;
 % LMS leakage
 leak = 0;
 % transient duration
@@ -32,25 +32,26 @@ nDiscards = 50;
 % generate MA model
 maModel = arima('MA', coefMa, 'Variance', variance, 'Constant', 0);
 % simulate noise by MA model
-[colourNoise, whiteNoise] = simulate(maModel, nSamples, 'NumPaths', nRealisations);
-% rows correspond to realisations
-colourNoise = colourNoise';
-whiteNoise = whiteNoise';
-%% Adaptive linear enhancer
-signal = cell(nDelays, nRealisations);
-prediction = cell(nDelays, nRealisations);
-errorSquare = cell(nDelays, nRealisations);
+[maSignal, innovation] = simulate(maModel, nSamples, 'NumPaths', nRps);
+% coloured noise by MA filter
+colouredNoise = maSignal';
+% white noise as innovation
+whiteNoise = innovation';
+%% Adaptive line enhancer
+noisySignal = cell(nDelays, nRps);
+signalAle = cell(nDelays, nRps);
+errorSquare = cell(nDelays, nRps);
 mspe = zeros(nDelays, 1);
 for iDelay = 1: nDelays
-    for iRealisation = 1: nRealisations
-        % noise-corrupted signal
-        signal{iDelay, iRealisation} = sineWave + colourNoise(iRealisation, :);
-        % grouped samples to approximate the value at certain instant
-        [group] = preprocessing(signal{iDelay, iRealisation}, length, iDelay);
-        % prediction by LMS
-        [~, prediction{iDelay, iRealisation}, ~] = leaky_lms(group, signal{iDelay, iRealisation}, step, leak);
+    for iRp = 1: nRps
+        % add coloured noise
+        noisySignal{iDelay, iRp} = signal + colouredNoise(iRp, :);
+        % preprocess the signal corrupted by coloured noise 
+        [group] = preprocessing(noisySignal{iDelay, iRp}, orderFilter, iDelay);
+        % signal predicted by ALE
+        [~, signalAle{iDelay, iRp}, ~] = leaky_lms(group, noisySignal{iDelay, iRp}, step, leak);
         % prediction error square
-        errorSquare{iDelay, iRealisation} = (sineWave(nDiscards + 1: end) - prediction{iDelay, iRealisation}(nDiscards + 1: end)) .^ 2;
+        errorSquare{iDelay, iRp} = (signal(nDiscards + 1: end) - signalAle{iDelay, iRp}(nDiscards + 1: end)) .^ 2;
     end
     % mean square prediction error
     mspe(iDelay) = mean(cell2mat(errorSquare(iDelay, :)));
@@ -61,28 +62,28 @@ figure;
 for iDelay = 1: nDelays
     subplot(nDelays, 1, iDelay);
     % individual realisations
-    for iRealisation = 1: nRealisations
+    for iRp = 1: nRps
         % noisy signals
-        noisyPlot = plot(t, signal{iDelay, iRealisation}, 'k');
+        noisyPlot = plot(t, noisySignal{iDelay, iRp}, 'k');
         hold on;
-        % predictions
-        predPlot = plot(t, prediction{iDelay, iRealisation}, 'b');
+        % predictions by ALE
+        alePlot = plot(t, signalAle{iDelay, iRp}, 'b');
         hold on;
     end
     % original signal
-    cleanPlot = plot(t, sineWave, 'r');
+    cleanPlot = plot(t, signal, 'r');
     hold off;
     grid on; grid minor;
-    legend([noisyPlot, predPlot, cleanPlot], {'Noisy', 'Prediction', 'Clean'});
-    title(sprintf('Prediction vs clean and noisy signals for ALE of filter length %d delay %d', length, iDelay));
+    legend([noisyPlot, alePlot, cleanPlot], {'Noisy', 'ALE', 'Clean'}, 'location', 'bestoutside');
+    title(sprintf('Noisy, clean and ALE signals by linear predictor of order %d with delay %d', orderFilter, iDelay));
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
 % MSPE
 figure;
-plot(pow2db(mspe), 'm-x');
+plot(pow2db(mspe), 'm');
 grid on; grid minor;
 legend('MSPE');
-title(sprintf('MSPE vs delay for ALE of filter length %d', length));
+title(sprintf('MSPE by linear predictor of order %d', orderFilter));
 xlabel('Delay (sample)');
 ylabel('MSPE (dB)');
