@@ -41,7 +41,7 @@ colouredNoise = maSignal';
 whiteNoise = innovation';
 % secondary noise (correlated to the primary noise in unknown way)
 secondaryNoise = 0.9 * colouredNoise + 0.05;
-%% Adaptive line enhancer
+%% Adaptive line enhancer and adaptive noise cancellation
 noisySignal = cell(nDelays, nRps);
 signalAle = cell(nDelays, nRps);
 signalAnc = cell(nDelays, nRps);
@@ -61,11 +61,10 @@ for iDelay = 1: nDelays
         [~, signalAle{iDelay, iRp}, ~] = leaky_lms(group, noisySignal{iDelay, iRp}, step, leak);
         % prediction error square of ALE
         errorSquareAle{iDelay, iRp} = (signal(nDiscards + 1: end) - signalAle{iDelay, iRp}(nDiscards + 1: end)) .^ 2;
-        %% ANC
         % noisy signal with unit delay
-        delayedSignal = [zeros(1, delay(iDelay)), noisySignal{iDelay, iRp}(1: end - delay(iDelay))];
+        delayedSignal = [0, noisySignal{iDelay, iRp}(1: end - 1)];
         % ANC: preprocess the secondary noise
-        [group] = preprocessing(secondaryNoise(iRp, :), orderFilter, delay(iDelay));
+        [group] = preprocessing(secondaryNoise(iRp, :), orderFilter, 1);
         % noise predicted by ANC
         [~, noiseAnc, ~] = leaky_lms(group, delayedSignal, step, leak);
         % signal recovered by ANC
