@@ -26,31 +26,30 @@ nSteps = length(step);
 leak = 0;
 % FM signal
 fmSignal = exp(1i * 2 * pi / fSample * phaseSeq) + sqrt(variance / 2) * (randn(1, nSamples) + 1i * randn(1, nSamples));
-% number of evaluation points
-nPoints = 1024;
-%% CLMS and frequency analysis
-% psdClms = zeros(nSteps, nPoints, nSamples);
-psdClms = cell(nSteps, 1);
+% % number of evaluation points
+% nPoints = 1024;
+%% AR-CLMS and frequency analysis
+psdArClms = cell(nSteps, 1);
 % delay and group the FM signal
 [group] = preprocessing(fmSignal, orderFilter, 1);
 for iStep = 1: nSteps
     % prediction by CLMS
-    [hClms, ~, ~] = clms(group, fmSignal, step(iStep), leak);
+    [hArClms, ~, ~] = clms(group, fmSignal, step(iStep), leak);
     for iSample = 1: nSamples
         % frequency spectrum at each instant
-        [hFreqClms, fClms] = freqz(1, [1; -conj(hClms(iSample))], nPoints, fSample);
+        [hFreqArClms, fArClms] = freqz(1, [1; -conj(hArClms(iSample))], nSamples, fSample);
         % store PSD
-        psdClms{iStep}(:, iSample) = abs(hFreqClms) .^ 2;
+        psdArClms{iStep}(:, iSample) = abs(hFreqArClms) .^ 2;
     end
     % remove outliers (50 times larger than median)
-    medianPsdClms = 50 * median(psdClms{iStep}, 'all');
-    psdClms{iStep}(psdClms{iStep} > medianPsdClms) = medianPsdClms;
+    medianPsdArClms = 50 * median(psdArClms{iStep}, 'all');
+    psdArClms{iStep}(psdArClms{iStep} > medianPsdArClms) = medianPsdArClms;
 end
 %% Result plot
 figure;
 for iStep = 1: nSteps
     subplot(nSteps, 1, iStep);
-    mesh(psdClms{iStep});
+    mesh(psdArClms{iStep});
     view(2);
     cbar = colorbar;
     cbar.Label.String = 'PSD (dB)';
