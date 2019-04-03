@@ -6,29 +6,53 @@ fSample = 1;
 nSamples = 1024;
 % sampling time
 t = (0: nSamples - 1) / fSample;
-% symmetrical frequency points
-f = (-nSamples / 2: nSamples/ 2 - 1) * (fSample / nSamples);
 % normalised frequencies of sine waves
-freqSine = [0.12 0.27];
-% signal
-sineWave = sin(2 * pi * freqSine(1) * t) + sin(2 * pi * freqSine(2) * t);
-%% Direct PSD: by definition
-% first DFT, then shift to center of frequency, next calculate power
-psdDef = abs(fftshift(fft(sineWave))) .^ 2 / nSamples;
-%% Indirect PSD: by DTFT of ACF
+fSine = [0.1, 0.27; 0.001 0.27];
+% sine: equality does not hold
+waveA = sin(2 * pi * fSine(1, 1) * t) + sin(2 * pi * fSine(1, 2) * t);
+% impulse: equality hold
+waveB = [1, zeros(1, nSamples - 1)];
+%% Definition 1: DTFT of ACF
 % calculate autocorrelation function of samples in time domain
-[acf, lags] = xcorr(sineWave, 'unbiased');
-% normalised frequency corresponds to ACF
-fAcf = lags ./ (2 * nSamples) * fSample;
+[acfA, ~] = xcorr(waveA, 'biased');
+[acfB, lag] = xcorr(waveB, 'biased');
+% normalised frequency corresponding to ACF
+f1 = lag ./ (2 * nSamples) * fSample;
 % first DFT, then shift to center of frequency
-psdAcf = abs(fftshift(fft(acf)));
+psdA1 = abs(fftshift(fft(acfA)));
+psdB1 = abs(fftshift(fft(acfB)));
+%% Definition 2: average power over frequencies
+% calculate power directly
+psdA2 = abs(fftshift(fft(waveA))) .^ 2 / nSamples;
+psdB2 = abs(fftshift(fft(waveB))) .^ 2 / nSamples;
+% symmetrical frequency points
+f2 = (-nSamples / 2: nSamples/ 2 - 1) * (fSample / nSamples);
 %% Result plots
 figure;
-plot(f, psdDef);
+subplot(3, 1, 1);
+plot(lag, acfA, 'LineWidth', 2);
 hold on;
-plot(fAcf, psdAcf);
+plot(lag, acfB, 'LineWidth', 2);
 grid on; grid minor;
-legend('By definition', 'By DTFT of ACF');
-title('Periodogram: direct and indirect methods');
+legend('Sinusoids', 'Impulse');
+title('Trend of ACF');
+xlabel('Lags (sample)');
+ylabel('ACF');
+subplot(3, 1, 2);
+plot(f1, psdA1, 'LineWidth', 2);
+hold on;
+plot(f2, psdA2, 'LineWidth', 2);
+grid on; grid minor;
+legend('Definition 1', 'Definition 2');
+title('Periodogram of sinusoids: direct and indirect');
 xlabel('Normalised frequency (\pi rad/sample)');
-ylabel('Power spectral density');
+ylabel('PSD');
+subplot(3, 1, 3);
+plot(f1, psdB1, 'LineWidth', 2);
+hold on;
+plot(f2, psdB2, '--', 'LineWidth', 2);
+grid on; grid minor;
+legend('Definition 1', 'Definition 2');
+title('Periodogram of impulse: direct and indirect');
+xlabel('Normalised frequency (\pi rad/sample)');
+ylabel('PSD');
