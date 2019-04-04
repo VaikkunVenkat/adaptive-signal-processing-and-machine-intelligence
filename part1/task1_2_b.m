@@ -10,7 +10,7 @@ fRes = 1 / 5;
 % FFT points
 nFft = fSample / fRes;
 % duration of window
-tWindow = [10 5 1];
+tWindow = [10, 5, 1];
 % remove mean
 poz = eeg.POz - mean(eeg.POz);
 % window overlap length
@@ -25,7 +25,7 @@ for iWindow = 1: length(tWindow)
     nWindows = tWindow(iWindow) * fSample;
     psdAvg{iWindow} = pwelch(poz, hamming(nWindows), nOverlap, nFft, fSample);
 end
-%% Result Plots
+%% Result Plot
 % standard
 figure;
 subplot(2, 1, 1);

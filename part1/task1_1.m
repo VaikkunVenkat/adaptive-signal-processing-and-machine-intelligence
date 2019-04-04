@@ -7,9 +7,9 @@ nSamples = 1024;
 % sampling time
 t = (0: nSamples - 1) / fSample;
 % normalised frequencies of sine waves
-fSine = [0.1, 0.27; 0.001 0.27];
+fSine = [0.1, 0.27];
 % sine: equality does not hold
-waveA = sin(2 * pi * fSine(1, 1) * t) + sin(2 * pi * fSine(1, 2) * t);
+waveA = sin(2 * pi * fSine(1) * t) + sin(2 * pi * fSine(2) * t);
 % impulse: equality hold
 waveB = [1, zeros(1, nSamples - 1)];
 %% Definition 1: DTFT of ACF
@@ -27,7 +27,7 @@ psdA2 = abs(fftshift(fft(waveA))) .^ 2 / nSamples;
 psdB2 = abs(fftshift(fft(waveB))) .^ 2 / nSamples;
 % symmetrical frequency points
 f2 = (-nSamples / 2: nSamples/ 2 - 1) * (fSample / nSamples);
-%% Result plots
+%% Result plot
 figure;
 subplot(3, 1, 1);
 plot(lag, acfA, 'LineWidth', 2);
