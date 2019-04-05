@@ -10,45 +10,43 @@ label = ["normal", "fast", "slow"];
 % duration of window
 tWindow = [50 150];
 % FFT points
-% nFft = 1024;
 nFft = 2048;
 % window overlap length
 nOverlap = 0;
-% declare vars
-psdStd = cell(nRris, 1);
-psdAvg = cell(nRris, length(tWindow));
-legendStr = cell(1, length(tWindow) + 1);
 %% Standard periodogram
+psdStd = cell(nRris, 1);
 for iRri = 1: nRris
     nSamples = length(rri{iRri});
-    [psdStd{iRri}, fAnalog] = periodogram(rri{iRri}, rectwin(nSamples), nFft, fSample);
+    [psdStd{iRri}, f] = periodogram(rri{iRri}, hamming(nSamples), nFft, fSample);
 end
 %% Bartlett periodogram: averaging with rectangular windows
+psdAvg = cell(nRris, length(tWindow));
 for iRri = 1: nRris
     for iWindow = 1: length(tWindow)
         % number of samples of windows
         nWindows = tWindow(iWindow) * fSample;
-        psdAvg{iRri, iWindow} = pwelch(rri{iRri}, rectwin(nWindows), nOverlap, nFft, fSample);
+        psdAvg{iRri, iWindow} = pwelch(rri{iRri}, hamming(nWindows), nOverlap, nFft, fSample);
     end
 end
 %% Result plot
+legendStr = cell(1, length(tWindow) + 1);
 figure;
 for iRri = 1: nRris
     subplot(nRris, 1, iRri);
     % standard
-    plot(fAnalog, pow2db(psdStd{iRri}));
+    plot(f, pow2db(psdStd{iRri}), 'LineWidth', 2);
     hold on;
     legendStr{1} = 'Standard';
     % Bartlett with different window length
     for iWindow = 1: length(tWindow)
-        plot(fAnalog, pow2db(psdAvg{iRri, iWindow}));
+        plot(f, pow2db(psdAvg{iRri, iWindow}), 'LineWidth', 2);
         hold on;
-        legendStr{iWindow + 1} = sprintf('Bartlett - window length %d', tWindow(iWindow));
+        legendStr{iWindow + 1} = sprintf('\\Deltat = %d sec', tWindow(iWindow));
     end
     grid on; grid minor;
     legend(legendStr);
     title(sprintf('Periodogram by standard and Bartlett methods for %s RRI', label(iRri)));
     xlabel('Frequency (Hz)');
-    ylabel('PSD (dB/Hz)');
+    ylabel('PSD (dB)');
     ylim([-80 0]);
 end

@@ -16,14 +16,15 @@ noisySine = sin(2 * pi * fSine(1) * t) + sin(2 * pi * fSine(2) * t) + randn(1, n
 filteredNoise = filter([1 1], 1, noise);
 % signal set
 signal = {noise, noisySine, filteredNoise};
+% add labels
 label = ["white Gaussian noise", "noisy sinusoid", "filtered white Gaussian noise"];
+% number of signals
 nSignals = length(signal);
-% declare vars
+%% Biased and unbiased ACF
 acfUnbiased = cell(nSignals, 1);
 acfBiased = cell(nSignals, 1);
 psdUnbiased = cell(nSignals, 1);
 psdBiased = cell(nSignals, 1);
-%% Biased and unbiased ACF
 for iSignal = 1: nSignals
     % biased and unbiased autocorrelation
     [acfUnbiased{iSignal}, lags] = xcorr(signal{iSignal}, 'unbiased');

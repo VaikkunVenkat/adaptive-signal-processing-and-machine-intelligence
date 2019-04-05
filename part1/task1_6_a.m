@@ -23,12 +23,12 @@ hold on;
 stem(sClean, 'r--o');
 legend('Noisy signal', 'Clean signal');
 title('Singular values of noisy and clean signal');
-xlabel('Singular value index');
-ylabel('Magnitude');
+xlabel('Subspace dimension index');
+ylabel('Singular value');
 % square error
 subplot(2, 1, 2);
-stem(error, 'm:s');
-legend('Square error');
-title('Square error between singular values of noisy and clean signal');
+stem(error, 'm-s');
+legend('Squared error');
+title('Error between singular values of noisy and clean signal');
 xlabel('Subspace dimension index');
-ylabel('Error magnitude square');
+ylabel('Squared error');

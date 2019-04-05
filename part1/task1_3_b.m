@@ -7,49 +7,49 @@ nSamples = 1024;
 % sampling time
 t = (0: nSamples - 1) / fSample;
 % amplitudes of sine waves
-ampSine = [0.7 0.5];
+aSine = [0.7 0.5];
 % normalised frequencies of sine waves
-freqSine = [0.12 0.27];
+fSine = [0.1 0.27];
 % clean sinusoidal signal
-sineWave = ampSine(1) * sin(2 * pi * freqSine(1) * t) + ampSine(2) * sin(2 * pi * freqSine(2) * t);
+sineWave = aSine(1) * sin(2 * pi * fSine(1) * t) + aSine(2) * sin(2 * pi * fSine(2) * t);
 % number of random processes to generate
 nRps = 1e2;
-%% Generate different noisy signals
-acfBiased = cell(nRps, 1);
-psdAcfBiased = cell(nRps, 1);
+%% PSD by indirect (Definition 1) method of different noisy signals
+acf = cell(nRps, 1);
+psd = cell(nRps, 1);
 for iRp = 1: nRps
     noisySine = sineWave + randn(size(sineWave));
     % biased autocorrelation
-    [acfBiased{iRp}, lags] = xcorr(noisySine, 'biased');
+    [acf{iRp}, lags] = xcorr(noisySine, 'biased');
     % correlogram spectral estimation
-    psdAcfBiased{iRp} = real(fftshift(fft(ifftshift(acfBiased{iRp}))));
+    psd{iRp} = real(fftshift(fft(ifftshift(acf{iRp}))));
 end
 % normalised frequency corresponds to ACF
-fAcf = lags ./ (2 * nSamples) * fSample;
+f = lags ./ (2 * nSamples) * fSample;
 % mean and standard deviation of PSD
-psdMean = mean(cell2mat(psdAcfBiased));
-psdStd = std(cell2mat(psdAcfBiased));
-%% Mean plot
+psdMean = mean(cell2mat(psd));
+psdStd = std(cell2mat(psd));
+%% Result plot
 figure;
+subplot(2, 1, 1);
 % individual realisations
 for iRp = 1: nRps
-    irPlot = plot(fAcf, psdAcfBiased{iRp}, 'k');
+    irPlot = plot(f, psd{iRp}, 'k', 'LineWidth', 2);
     hold on;
 end
 % mean
-meanPlot = plot(fAcf, psdMean, 'r');
+meanPlot = plot(f, psdMean, 'r', 'LineWidth', 2);
 hold off;
 grid on; grid minor;
-legend([irPlot, meanPlot], {'Realisations', 'Mean'});
-title('PSD estimates (different realisations and mean)');
+legend([irPlot, meanPlot], {'Individual', 'Mean'});
+title('Individual and mean PSD by biased estimator');
 xlabel('Normalised frequency (\pi rad/sample)');
-ylabel('Power spectral density');
-%% Standard deviation plot
-figure;
+ylabel('PSD');
 % standard deviation
-stdPlot = plot(fAcf, psdStd, 'm');
+subplot(2, 1, 2);
+varPlot = plot(f, psdStd, 'm', 'LineWidth', 2);
 grid on; grid minor;
 legend('Standard deviation');
-title('Standard deviation of the PSD estimate');
+title('Standard deviation of PSD estimate of noise-corrupted signals');
 xlabel('Normalised frequency (\pi rad/sample)');
-ylabel('Power spectral density');
+ylabel('PSD');

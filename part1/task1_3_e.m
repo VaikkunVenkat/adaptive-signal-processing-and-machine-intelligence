@@ -7,70 +7,68 @@ nSamples = 1024;
 % sampling time
 t = (0: nSamples - 1) / fSample;
 % exponentials of normalised frequency: 0.3, 0.32
-freqExp = [0.3, 0.32];
-expWave = exp(1i * 2 * pi * freqExp(1) * t) + exp(1i * 2 * pi * freqExp(2) * t);
-nPoints = 20: 15: 50;
+fExp = [0.3, 0.32];
+% signal with 2 exponential components
+expWave = exp(1i * 2 * pi * fExp(1) * t) + exp(1i * 2 * pi * fExp(2) * t);
+% number of sampling points
+point = 20: 10: 50;
+% number of cases of sampling points
+nPoints = length(point);
 % noise power
-noisePower = 0.2;
+pNoise = 0.2;
 % number of random processes to generate
 nRps = 1e2;
-% declare vars
-psdMusic = cell(length(nPoints), nRps);
-psdMusicMean = cell(length(nPoints), 1);
-psdMusicStd = cell(length(nPoints), 1);
 %% Exponentials of different length
-for iLength = 1: length(nPoints)
+psdMusic = cell(nPoints, nRps);
+psdMusicMean = cell(nPoints, 1);
+psdMusicStd = cell(nPoints, 1);
+for iPoint = 1: nPoints
     for iRp = 1: nRps
         % noise
-        noise = sqrt(noisePower / 2) * (randn(1, nPoints(iLength)) + 1i * randn(1, nPoints(iLength)));
+        noise = sqrt(pNoise / 2) * (randn(1, point(iPoint)) + 1i * randn(1, point(iPoint)));
         % noisy exponentials
-        noisyExp = expWave(1: nPoints(iLength)) + noise;
+        noisyExp = expWave(1: point(iPoint)) + noise;
         % obtain the unbiased correlation matrix with dimension 15-by-15
-        % - X: X'X is a biased estimate of the autocorrelation matrix
-        % - cor: autocorrelation matrix estimate roughly equal to X'*X
         [~, cor] = corrmtx(noisyExp, 14, 'mod');
         % spectrum estimation by MUSIC algorthm
-        % - psdMusic: pseudospectrum
-        % - f: (normalised) frequency points
-        [psdMusic{iLength, iRp}, f] = pmusic(cor, 2, [], fSample);
+        [psdMusic{iPoint, iRp}, f] = pmusic(cor, 2, [], fSample);
     end
     % mean
-    psdMusicMean{iLength} = mean(cell2mat(psdMusic(iLength, :)), 2);
+    psdMusicMean{iPoint} = mean(cell2mat(psdMusic(iPoint, :)), 2);
     % standard deviation
-    psdMusicStd{iLength} = std(cell2mat(psdMusic(iLength, :)), [], 2);
+    psdMusicStd{iPoint} = std(cell2mat(psdMusic(iPoint, :)), [], 2);
 end
 %% Pseudospectrum plot
 % mean
 figure;
-for iLength = 1: length(nPoints)
-    subplot(length(nPoints), 1, iLength);
+for iPoint = 1: nPoints
+    subplot(nPoints, 2, 2 * (iPoint - 1) + 1);
     % individual realisations
     for iRp = 1: nRps
-        irPlot = plot(f, psdMusic{iLength, iRp}, 'color', 'k');
+        irPlot = plot(f, psdMusic{iPoint, iRp}, 'k', 'LineWidth', 2);
         hold on;
     end
-    meanPlot = plot(f, psdMusicMean{iLength}, 'color', 'r'); 
-    set(gca, 'xlim', [0.25 0.40]);
+    meanPlot = plot(f, psdMusicMean{iPoint}, 'r', 'LineWidth', 2);
     grid on; grid minor;
-    legend([irPlot, meanPlot], {'Realisations', 'Mean'});
-    title(['PSD estimate by MUSIC (N = ', sprintf('%d, ', nPoints(iLength)), 'f =', sprintf(' %.2f ', freqExp), ')']);
+    legend([irPlot, meanPlot], {'Individual', 'Mean'});
+    title(['PSD estimate by MUSIC: N = ', num2str(point(iPoint))]);
     xlabel('Normalised frequency (\pi rad/sample)');
     ylabel('Pseudospectrum');
+    xlim([0.25 0.40]);
 end
 % variance
-figure;
-for iLength = 1: length(nPoints)
-    subplot(length(nPoints), 1, iLength);
+for iPoint = 1: length(point)
+    subplot(length(point), 2, 2 * iPoint);
     % individual realisations
     for iRp = 1: nRps
-        irPlot = plot(f, psdMusic{iLength, iRp}, 'color', 'k');
+        irPlot = plot(f, psdMusic{iPoint, iRp}, 'k', 'LineWidth', 2);
         hold on;
     end
-    stdPlot = plot(f, psdMusicStd{iLength}, 'color', 'm'); 
-    set(gca, 'xlim', [0.25 0.40]);
+    stdPlot = plot(f, psdMusicStd{iPoint}, 'm', 'LineWidth', 2);
     grid on; grid minor;
-    legend([irPlot, stdPlot], {'Realisations', 'Standard deviation'});
-    title(['Standard deviation of the MUSIC estimate (N = ', sprintf('%d, ', nPoints(iLength)), 'f =', sprintf(' %.2f', freqExp), ')']);
+    legend([irPlot, stdPlot], {'Individual', 'Standard deviation'});
+    title(['Standard deviation of the MUSIC estimate: N = ', num2str(point(iPoint))]);
     xlabel('Normalised frequency (\pi rad/sample)');
     ylabel('Pseudospectrum');
+    xlim([0.25 0.40]);
 end

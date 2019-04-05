@@ -8,23 +8,20 @@ rri = {detrend(ecg.xRRI1 - mean(ecg.xRRI1)) detrend(ecg.xRRI2 - mean(ecg.xRRI2))
 nRris = length(rri);
 label = ["normal", "fast", "slow"];
 % FFT points
-% nFft = 1024;
 nFft = 2048;
 % AR order used in estimation
-orderAr = 2: 5: 32;
+orderAr = 2: 4: 10;
 nOrders = length(orderAr);
-% declare vars
-fAr = cell(nRris, 1);
-varEst = zeros(nRris, nOrders);
-psdAr = cell(nRris, nOrders);
-psdStd = cell(nRris, 1);
-legendStr = cell(1, nOrders + 1);
 %% Standard periodogram
+psdStd = cell(nRris, 1);
 for iRri = 1: nRris
     nSamples = length(rri{iRri});
-    [psdStd{iRri}, fAnalog] = periodogram(rri{iRri}, rectwin(nSamples), nFft, fSample);
+    [psdStd{iRri}, f] = periodogram(rri{iRri}, rectwin(nSamples), nFft, fSample);
 end
 %% AR modelling
+psdAr = cell(nRris, nOrders);
+varEst = zeros(nRris, nOrders);
+fAr = cell(nRris, 1);
 for iRri = 1: nRris
     nSamples = length(rri{iRri});
     for iOrder = 1: nOrders
@@ -37,29 +34,24 @@ for iRri = 1: nRris
     end
 end
 %% Result plot
+legendStr = cell(1, nOrders + 1);
+figure;
 for iRri = 1: nRris
-    figure;
+    subplot(nRris, 1, iRri);
     % standard
-    plot(fAnalog, pow2db(psdStd{iRri}), 'k');
+    plot(f, pow2db(psdStd{iRri}), 'k', 'LineWidth', 2);
     hold on;
     legendStr{1} = 'Standard';
+    % AR
     for iOrder = 1: nOrders
-        plot(fAr{iRri}, pow2db(psdAr{iRri, iOrder}));
+        plot(fAr{iRri}, pow2db(psdAr{iRri, iOrder}), 'LineWidth', 2);
         hold on;
-        legendStr{iOrder + 1} = sprintf('AR order = %d', orderAr(iOrder));
+        legendStr{iOrder + 1} = sprintf('AR (%d)', orderAr(iOrder));
     end
     grid on; grid minor;
     legend(legendStr);
-    title(sprintf('Periodogram by standard and AR modelling method for %s RRI', label(iRri)));
+    title(sprintf('PSD estimate by normal periodogram and AR model for %s RRI', label(iRri)));
     xlabel('Frequency (Hz)');
-    ylabel('PSD (dB/Hz)');
+    ylabel('PSD (dB)');
     ylim([-80 0]);
-    % variance (noise power)
-    figure;
-    plot(orderAr, pow2db(varEst(iRri, :)), 'm-x');
-    grid on; grid minor;
-    legend('Variance');
-    title('Relationship between AR order and noise power');
-    xlabel('Order of AR model');
-    ylabel('Noise power (dB)');
 end
