@@ -13,8 +13,10 @@ variance = 0.5;
 % delay for decorrelation
 delay = 1;
 % initial step size for GASS and GNGD
-stepGass = 0.1;
-stepGngd = 0.1;
+stepGass = 0.5;
+% stepGass = 0;
+stepGngd = 7;
+% stepGngd = 0;
 % LMS leakage
 leak = 0;
 % learning rate
@@ -55,25 +57,27 @@ errorSquareGngdAvg = mean(cat(3, errorGngd{:}) .^ 2, 3);
 %% Result plot
 % weight error
 figure;
-plot(coefMa - weightGassAvg(2, :), 'k-');
+subplot(2, 1, 1);
+plot(coefMa - weightGassAvg(2, :), 'LineWidth', 2);
 hold on;
-plot(coefMa - weightGngdAvg(2, :), 'r-.');
+plot(coefMa - weightGngdAvg(2, :), 'LineWidth', 2);
 hold off;
 grid on; grid minor;
 legend('Benveniste GASS', 'GNGD', 'location', 'northeast');
 title('Weight error curves by GASS and GNGD');
 xlabel('Number of iterations (sample)');
 ylabel('Weight error');
-xlim([0 200]);
+xlim([0 50]);
 ylim([0 1]);
 % average error square
-figure;
-plot(pow2db(errorSquareGassAvg), 'k-');
+subplot(2, 1, 2);
+plot(pow2db(errorSquareGassAvg), 'LineWidth', 2);
 hold on;
-plot(pow2db(errorSquareGngdAvg), 'r-.');
+plot(pow2db(errorSquareGngdAvg), 'LineWidth', 2);
 hold off;
 grid on; grid minor;
 legend('Benveniste GASS', 'GNGD', 'location', 'northeast');
-title('Error square curves by GASS and GNGD');
+title('Squared error curves by GASS and GNGD');
 xlabel('Number of iterations (sample)');
 ylabel('Squared error (dB)');
+xlim([0 500]);

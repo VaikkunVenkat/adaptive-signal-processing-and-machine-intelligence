@@ -17,7 +17,7 @@ step = [0.05; 0.01];
 % number of steps
 nSteps = length(step);
 % LMS leakage
-leak = 0.2: 0.2: 0.8;
+leak = 0.2: 0.3: 0.8;
 % number of leakages
 nLeaks = length(leak);
 %% Generate signal
@@ -45,23 +45,23 @@ for iLeak = 1: nLeaks
     end
 end
 %% Result plot
+figure;
 for iLeak = 1: nLeaks
     legendStr = cell(2 * orderAr, 1);
-    figure;
     for iStep = 1: nSteps
-        subplot(nSteps, 1, iStep);
+        subplot(nLeaks, nSteps, (iLeak - 1) * nSteps + iStep);
         for iOrder = 1: orderAr
-            plot(weightLeakyLmsAvg{iLeak, iStep}(iOrder, :));
+            plot(weightLeakyLmsAvg{iLeak, iStep}(iOrder, :), 'LineWidth', 2);
             hold on;
-            legendStr{2 * iOrder - 1} = sprintf('Estimated a_%d', iOrder);
-            plot([0 nSamples], [coefAr(iOrder) coefAr(iOrder)], '--');
+            legendStr{2 * iOrder - 1} = sprintf('Est. a_%d', iOrder);
+            plot([0 nSamples], [coefAr(iOrder) coefAr(iOrder)], '--', 'LineWidth', 2);
             hold on;
-            legendStr{2 * iOrder} = sprintf('True a_%d', iOrder);
+            legendStr{2 * iOrder} = sprintf('a_%d', iOrder);
         end
         hold off;
         grid on; grid minor;
         legend(legendStr, 'location', 'bestoutside');
-        title(sprintf('Learning curves for step size %.2f and leakage %.1f', step(iStep), leak(iLeak)));
+        title(sprintf('Steady state values of coefficients for \\mu = %.2f and \\gamma = %.1f', step(iStep), leak(iLeak)));
         xlabel('Number of iterations (sample)');
         ylabel('Average weights');
         ylim([0 1]);

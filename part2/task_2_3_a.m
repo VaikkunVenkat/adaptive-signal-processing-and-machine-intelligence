@@ -7,11 +7,11 @@ nSamples = 1e3;
 % sampling time
 t = (0: nSamples - 1) / fSample;
 % amplitudes of sine waves
-ampSine = 1;
+aSine = 1;
 % normalised frequencies of sine waves
-freqSine = 5e-3;
+fSine = 5e-3;
 % clean sinusoidal signal
-signal = ampSine * sin(2 * pi * freqSine * t);
+signal = aSine * sin(2 * pi * fSine * t);
 % number of realisations
 nRps = 1e2;
 % coefficients of noise as MA process (correspond to lags)
@@ -21,13 +21,13 @@ variance = 1;
 % learning step size
 step = 0.01;
 % max delay of the linear predictor
-nDelays = 5;
+nDelays = 7;
 % filter order (length)
 orderFilter = 5;
 % LMS leakage
 leak = 0;
 % transient duration
-nDiscards = 50;
+nTransients = 50;
 %% Generate noise
 % generate MA model
 maModel = arima('MA', coefMa, 'Variance', variance, 'Constant', 0);
@@ -51,7 +51,7 @@ for iDelay = 1: nDelays
         % signal predicted by ALE
         [~, signalAle{iDelay, iRp}, ~] = leaky_lms(group, noisySignal{iDelay, iRp}, step, leak);
         % prediction error square
-        errorSquare{iDelay, iRp} = (signal(nDiscards + 1: end) - signalAle{iDelay, iRp}(nDiscards + 1: end)) .^ 2;
+        errorSquare{iDelay, iRp} = (signal(nTransients + 1: end) - signalAle{iDelay, iRp}(nTransients + 1: end)) .^ 2;
     end
     % mean square prediction error
     mspe(iDelay) = mean(cell2mat(errorSquare(iDelay, :)));
@@ -64,26 +64,26 @@ for iDelay = 1: nDelays
     % individual realisations
     for iRp = 1: nRps
         % noisy signals
-        noisyPlot = plot(t, noisySignal{iDelay, iRp}, 'k');
+        noisyPlot = plot(t, noisySignal{iDelay, iRp}, 'k', 'LineWidth', 2);
         hold on;
         % predictions by ALE
-        alePlot = plot(t, signalAle{iDelay, iRp}, 'b');
+        alePlot = plot(t, signalAle{iDelay, iRp}, 'b', 'LineWidth', 2);
         hold on;
     end
     % original signal
-    cleanPlot = plot(t, signal, 'r');
+    cleanPlot = plot(t, signal, 'r', 'LineWidth', 2);
     hold off;
     grid on; grid minor;
     legend([noisyPlot, alePlot, cleanPlot], {'Noisy', 'ALE', 'Clean'}, 'location', 'bestoutside');
-    title(sprintf('Noisy, clean and ALE signals by linear predictor of order %d with delay %d', orderFilter, iDelay));
+    title(sprintf('Noisy, clean and ALE signals by linear predictor M = %d \\Delta = %d', orderFilter, iDelay));
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
 % MSPE
 figure;
-plot(pow2db(mspe), 'm');
+plot(pow2db(mspe), 'm', 'LineWidth', 2);
 grid on; grid minor;
 legend('MSPE');
-title(sprintf('MSPE by linear predictor of order %d', orderFilter));
+title(sprintf('MSPE by linear predictor M = %d', orderFilter));
 xlabel('Delay (sample)');
 ylabel('MSPE (dB)');

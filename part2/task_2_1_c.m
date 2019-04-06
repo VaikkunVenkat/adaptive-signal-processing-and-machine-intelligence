@@ -19,7 +19,7 @@ nSteps = length(step);
 % LMS leakage
 leak = 0;
 % transient duration
-nDiscards = 5e2;
+nTransients = 5e2;
 %% Generate signal
 % generate AR model
 arModel = arima('AR', coefAr, 'Variance', variance, 'Constant', 0);
@@ -38,7 +38,7 @@ for iStep = 1: nSteps
         % error by LMS estimation
         [~, ~, error] = leaky_lms(group, signal, step(iStep), leak);
         % mean square error in stable state
-        mse(iStep, iRp) = mean(error(nDiscards + 1: end) .^ 2);
+        mse(iStep, iRp) = mean(error(nTransients + 1: end) .^ 2);
     end
 end
 % excess mean square error

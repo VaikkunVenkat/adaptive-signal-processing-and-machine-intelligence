@@ -1,4 +1,4 @@
-clear; close all; init;
+clear; init;
 %% Initialisation
 % normalised sampling frequency
 fSample = 1;
@@ -22,9 +22,11 @@ variance = 1;
 step = 0.01;
 % delays of the linear predictor
 delay = 3: 25;
+% delay = 3;
 % number of delays
 nDelays = length(delay);
 % filter order (length)
+% orderFilter = 1: 20;
 orderFilter = 5: 5: 20;
 % number of orders
 nOrders = length(orderFilter);
@@ -63,29 +65,30 @@ end
 %% Result plot
 % MSPE vs delay
 legendStr = cell(nOrders, 1);
-figure;
+% figure;
+subplot(2, 1, 1);
 for iOrder = 1: nOrders
-    plot(delay, pow2db(mspe(iOrder, :)));
-    legendStr{iOrder} = sprintf('Order %d', orderFilter(iOrder));
+    plot(delay, pow2db(mspe(iOrder, :)), 'LineWidth', 2);
+    legendStr{iOrder} = sprintf('M = %d', orderFilter(iOrder));
     hold on;
 end
 grid on; grid minor;
 legend(legendStr, 'location', 'southeast');
-title('MSPE against delay');
+title('MSPE against delay and filter order');
 xlabel('Delay (sample)');
 ylabel('MSPE (dB)');
 xlim([min(delay), max(delay)]);
 % MSPE vs filter order
-figure;
-nDelayPlots = 7;
+subplot(2, 1, 2);
+nDelayPlots = 1;
 legendStr = cell(nDelayPlots, 1);
 for iDelayPlot = 1: nDelayPlots
-    plot(orderFilter, pow2db(mspe(:, iDelayPlot)));
-    legendStr{iDelayPlot} = sprintf('Delay %d', delay(iDelayPlot));
+    plot(orderFilter, pow2db(mspe(:, iDelayPlot)), 'LineWidth', 2);
+    legendStr{iDelayPlot} = sprintf('\\Delta = %d', delay(iDelayPlot));
     hold on;
 end
 grid on; grid minor;
 legend(legendStr, 'location', 'southeast');
 title('MSPE against filter order');
-xlabel('Delay (sample)');
+xlabel('Filter order');
 ylabel('MSPE (dB)');

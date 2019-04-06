@@ -46,17 +46,17 @@ figure;
 for iStep = 1: nSteps
     subplot(nSteps, 1, iStep);
     for iOrder = 1: orderAr
-        plot(weightLmsAvg{iStep}(iOrder, :));
+        plot(weightLmsAvg{iStep}(iOrder, :), 'LineWidth', 2);
         hold on;
-        legendStr{2 * iOrder - 1} = sprintf('Estimated a_%d', iOrder);
-        plot([0 nSamples], [coefAr(iOrder) coefAr(iOrder)], '--');
+        legendStr{2 * iOrder - 1} = sprintf('Est. a_%d', iOrder);
+        plot([0 nSamples], [coefAr(iOrder) coefAr(iOrder)], '--', 'LineWidth', 2);
         hold on;
-        legendStr{2 * iOrder} = sprintf('True a_%d', iOrder);
+        legendStr{2 * iOrder} = sprintf('a_%d', iOrder);
     end
     hold off;
     grid on; grid minor;
-    legend(legendStr, 'location', 'bestoutside');
-    title(sprintf('Learning curves for step size %.2f', step(iStep)));
+    legend(legendStr);
+    title(sprintf('Steady state values of coefficients for \\mu = %.2f', step(iStep)));
     xlabel('Number of iterations (sample)');
     ylabel('Average weights');
     ylim([0 1]);

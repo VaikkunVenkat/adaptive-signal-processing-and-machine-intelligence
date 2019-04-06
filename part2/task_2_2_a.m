@@ -13,11 +13,11 @@ variance = 0.5;
 % delay for decorrelation
 delay = 1;
 % learning step size
-step = [0.01; 0.05; 0.1];
+step = [0.01; 0.1];
 % number of steps
 nSteps = length(step);
 % initial step size for GASS
-stepInit = 0.1;
+stepInit = 0;
 % LMS leakage
 leak = 0;
 % learning rate
@@ -47,6 +47,7 @@ for iStep = 1: nSteps
     for iRp = 1: nRps
         % desired signal with unit delay
         signal = [0, maSignal(iRp, 1: end - 1)];
+%         signal = maSignal;
         % order plus one to capture current innovation
         [group] = preprocessing(innovation(iRp, :), orderMa + 1, delay);
         % weight by LMS
@@ -56,6 +57,7 @@ for iStep = 1: nSteps
     weightLmsAvg{iStep} = mean(cat(3, weightLms{iStep, :}), 3);
     % average error square
     errorSquareLmsAvg{iStep} = mean(cat(3, errorLms{iStep, :}) .^ 2, 3);
+%     errorSquareLmsAvg{iStep} = errorLms{iStep, iRp} .^ 2;
 end
 %% GASS LMS
 weightBenveniste = cell(1, nRps);
@@ -88,18 +90,19 @@ errorSquareMatthewsAvg = mean(cat(3, errorMatthews{:}) .^ 2, 3);
 % weight error
 legendStr = cell(nSteps + 3, 1);
 figure;
+subplot(2, 1, 1);
 for iStep = 1: nSteps
-    plot(coefMa - weightLmsAvg{iStep}(2, :));
-    legendStr{iStep} = sprintf('Fixed Step %.2f', step(iStep));
+    plot(coefMa - weightLmsAvg{iStep}(2, :), 'LineWidth', 2);
+    legendStr{iStep} = sprintf(['\\mu = ', num2str(step(iStep))]);
     hold on;
 end
-plot(coefMa - weightBenvenisteAvg(2, :), '-.');
+plot(coefMa - weightBenvenisteAvg(2, :), '-.', 'LineWidth', 2);
 legendStr{nSteps + 1} = 'Benveniste';
 hold on;
-plot(coefMa - weightAngAvg(2, :), '-.');
+plot(coefMa - weightAngAvg(2, :), '-.', 'LineWidth', 2);
 legendStr{nSteps + 2} = 'Ang-Farhang';
 hold on;
-plot(coefMa - weightMatthewsAvg(2, :), '-.');
+plot(coefMa - weightMatthewsAvg(2, :), '-.', 'LineWidth', 2);
 legendStr{nSteps + 3} = 'Matthews-Xie';
 hold off;
 grid on; grid minor;
@@ -110,23 +113,23 @@ ylabel('Weight error');
 xlim([0 200]);
 ylim([0 1]);
 % average error square
-figure;
+subplot(2, 1, 2);
 for iStep = 1: nSteps
-    plot(pow2db(errorSquareLmsAvg{iStep}));
-    legendStr{iStep} = sprintf('Fixed Step %.2f', step(iStep));
+    plot(pow2db(errorSquareLmsAvg{iStep}), 'LineWidth', 2);
+    legendStr{iStep} = sprintf(['\\mu = ', num2str(step(iStep))]);
     hold on;
 end
-plot(pow2db(errorSquareBenvenisteAvg), '-.');
+plot(pow2db(errorSquareBenvenisteAvg), '-.', 'LineWidth', 2);
 legendStr{nSteps + 1} = 'Benveniste';
 hold on;
-plot(pow2db(errorSquareAngAvg), '-.');
+plot(pow2db(errorSquareAngAvg), '-.', 'LineWidth', 2);
 legendStr{nSteps + 2} = 'Ang-Farhang';
 hold on;
-plot(pow2db(errorSquareMatthewsAvg), '-.');
+plot(pow2db(errorSquareMatthewsAvg), '-.', 'LineWidth', 2);
 legendStr{nSteps + 3} = 'Matthews-Xie';
 hold off;
 grid on; grid minor;
 legend(legendStr, 'location', 'northeast');
-title('Error square curves for fixed and adaptive step sizes');
+title('Squared error curves for fixed and adaptive step sizes');
 xlabel('Number of iterations (sample)');
 ylabel('Squared error (dB)');
