@@ -19,7 +19,7 @@ phaseSeq = cumsum(freqSeq);
 % filter order (length)
 orderFilter = 1;
 % learning step size
-step = [1e-1, 1e-2, 1e-3];
+step = [1e0, 1e-1, 1e-2, 1e-3];
 % number of step size
 nSteps = length(step);
 % LMS leakage
@@ -54,8 +54,8 @@ for iStep = 1: nSteps
     cbar = colorbar;
     cbar.Label.String = 'PSD (dB)';
     grid on; grid minor;
-    legend('AR (1)');
-    title(['Time-frequency diagram of FM signal by CLMS of step ', num2str(step(iStep))]);
+    legend(sprintf('CLMS-AR (%d)', orderFilter));
+    title([sprintf('Time-frequency diagram of FM signal by CLMS \\mu = '), num2str(step(iStep))]);
     xlabel('Time (sample)');
     ylabel('Frequency (Hz)');
 end

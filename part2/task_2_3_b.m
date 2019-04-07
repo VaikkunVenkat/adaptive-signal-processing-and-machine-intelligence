@@ -7,11 +7,11 @@ nSamples = 1e3;
 % sampling time
 t = (0: nSamples - 1) / fSample;
 % amplitudes of sine waves
-ampSine = 1;
+aSine = 1;
 % normalised frequencies of sine waves
-freqSine = 5e-3;
+fSine = 5e-3;
 % clean sinusoidal signal
-signal = ampSine * sin(2 * pi * freqSine * t);
+signal = aSine * sin(2 * pi * fSine * t);
 % number of realisations
 nRps = 1e2;
 % coefficients of noise as MA process (correspond to lags)
@@ -33,7 +33,7 @@ nOrders = length(orderFilter);
 % LMS leakage
 leak = 0;
 % transient duration
-nDiscards = 50;
+nTransients = 50;
 %% Generate noise
 % generate MA model
 maModel = arima('MA', coefMa, 'Variance', variance, 'Constant', 0);
@@ -56,7 +56,7 @@ for iOrder = 1: nOrders
             % signal predicted by ALE
             [~, signalAle, ~] = leaky_lms(group, noisySignal, step, leak);
             % prediction error square
-            errorSquare{iOrder, iDelay, iRp} = (signal(nDiscards + 1: end) - signalAle(nDiscards + 1: end)) .^ 2;
+            errorSquare{iOrder, iDelay, iRp} = (signal(nTransients + 1: end) - signalAle(nTransients + 1: end)) .^ 2;
         end
         % mean square prediction error
         mspe(iOrder, iDelay) = mean(cell2mat(errorSquare(iOrder, iDelay, :)), 'all');

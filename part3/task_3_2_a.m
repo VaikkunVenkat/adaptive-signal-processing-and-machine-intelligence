@@ -59,9 +59,9 @@ xlabel('Time (sample)');
 ylabel('Angle (rad)');
 % overall
 figure;
-plot(fAr, pow2db(psdAr));
+plot(fAr, pow2db(psdAr), 'LineWidth', 2);
 grid on; grid minor;
-legend('AR (1)');
+legend(sprintf('Aryule-AR (%d)', orderAr));
 title('Overall estimation of FM signal by AR model');
 xlabel('Frequency (Hz)');
 ylabel('PSD (dB)');
@@ -69,10 +69,10 @@ ylabel('PSD (dB)');
 figure;
 for iSeg = 1: nSegs
     subplot(nSegs, 1, iSeg);
-    plot(fArSeg{iSeg}, pow2db(psdArSeg{iSeg}));
+    plot(fArSeg{iSeg}, pow2db(psdArSeg{iSeg}), 'LineWidth', 2);
     grid on; grid minor;
-    legend('AR (1)');
-    title(sprintf('Individual estimation of segment %d of FM signal by AR model', iSeg));
+    legend(sprintf('Segment %d', iSeg));
+    title(sprintf('Individual estimation of FM signal by Aryule-AR (%d) model', orderAr));
     xlabel('Frequency (Hz)');
     ylabel('PSD (dB)');
 end

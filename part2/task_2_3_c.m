@@ -7,11 +7,11 @@ nSamples = 1e3;
 % sampling time
 t = (0: nSamples - 1) / fSample;
 % amplitudes of sine waves
-ampSine = 1;
+aSine = 1;
 % normalised frequencies of sine waves
-freqSine = 5e-3;
+fSine = 5e-3;
 % clean sinusoidal signal
-signal = ampSine * sin(2 * pi * freqSine * t);
+signal = aSine * sin(2 * pi * fSine * t);
 % number of realisations
 nRps = 1e2;
 % coefficients of noise as MA process (correspond to lags)
@@ -21,7 +21,8 @@ variance = 1;
 % learning step size
 step = 0.005;
 % delays of the linear predictor
-delay = 3: 6;
+% delay = 3: 6;
+delay = 3;
 % number of delays
 nDelays = length(delay);
 % filter order (length)
@@ -29,7 +30,7 @@ orderFilter = 6;
 % LMS leakage
 leak = 0;
 % transient duration
-nDiscards = 50;
+nTransients = 50;
 %% Generate noise
 % generate MA model
 maModel = arima('MA', coefMa, 'Variance', variance, 'Constant', 0);
@@ -60,7 +61,7 @@ for iDelay = 1: nDelays
         % signal predicted by ALE
         [~, signalAle{iDelay, iRp}, ~] = leaky_lms(group, noisySignal{iDelay, iRp}, step, leak);
         % prediction error square of ALE
-        errorSquareAle{iDelay, iRp} = (signal(nDiscards + 1: end) - signalAle{iDelay, iRp}(nDiscards + 1: end)) .^ 2;
+        errorSquareAle{iDelay, iRp} = (signal(nTransients + 1: end) - signalAle{iDelay, iRp}(nTransients + 1: end)) .^ 2;
         % noisy signal with unit delay
         delayedSignal = [0, noisySignal{iDelay, iRp}(1: end - 1)];
         % ANC: preprocess the secondary noise
@@ -70,7 +71,7 @@ for iDelay = 1: nDelays
         % signal recovered by ANC
         signalAnc{iDelay, iRp} = delayedSignal - noiseAnc;
         % prediction error square of ANC
-        errorSquareAnc{iDelay, iRp} = (signal(nDiscards + 1: end) - signalAnc{iDelay, iRp}(nDiscards + 1: end)) .^ 2;
+        errorSquareAnc{iDelay, iRp} = (signal(nTransients + 1: end) - signalAnc{iDelay, iRp}(nTransients + 1: end)) .^ 2;
     end
     % mean square prediction error
     mspeAle(iDelay) = mean(cell2mat(errorSquareAle(iDelay, :)));
@@ -82,79 +83,82 @@ end
 %% Result plot
 % signal vs ALE prediction
 figure;
+subplot(3, 1, 1);
 for iDelay = 1: nDelays
-    subplot(nDelays, 1, iDelay);
+%     subplot(nDelays, 1, iDelay);
     % individual realisations
     for iRp = 1: nRps
         % noisy signals
-        noisyPlot = plot(t, noisySignal{iDelay, iRp}, 'k');
+        noisyPlot = plot(t, noisySignal{iDelay, iRp}, 'k', 'LineWidth', 2);
         hold on;
         % predictions
-        alePlot = plot(t, signalAle{iDelay, iRp}, 'b');
+        alePlot = plot(t, signalAle{iDelay, iRp}, 'b', 'LineWidth', 2);
         hold on;
     end
     % original signal
-    cleanPlot = plot(t, signal, 'r');
+    cleanPlot = plot(t, signal, 'r', 'LineWidth', 2);
     hold off;
     grid on; grid minor;
     legend([noisyPlot, alePlot, cleanPlot], {'Noisy', 'ALE', 'Clean'});
-    title(sprintf('Noisy, clean and ALE signals by linear predictor of order %d with delay %d', orderFilter, delay(iDelay)));
+    title(sprintf('ALE signal by linear predictor M = %d and \\Delta = %d, MSPE = %.2f dB', orderFilter, delay(iDelay), pow2db(mspeAle)));
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
 % signal vs ANC prediction
-figure;
+% figure;
+subplot(3, 1, 2);
 for iDelay = 1: nDelays
-    subplot(nDelays, 1, iDelay);
+%     subplot(nDelays, 1, iDelay);
     % individual realisations
     for iRp = 1: nRps
         % noisy signals
-        noisyPlot = plot(t, noisySignal{iDelay, iRp}, 'k');
+        noisyPlot = plot(t, noisySignal{iDelay, iRp}, 'k', 'LineWidth', 2);
         hold on;
         % predictions
-        ancPlot = plot(t, signalAnc{iDelay, iRp}, 'c');
+        ancPlot = plot(t, signalAnc{iDelay, iRp}, 'c', 'LineWidth', 2);
         hold on;
     end
     % original signal
-    cleanPlot = plot(t, signal, 'r');
+    cleanPlot = plot(t, signal, 'r', 'LineWidth', 2);
     hold off;
     grid on; grid minor;
     legend([noisyPlot, ancPlot, cleanPlot], {'Noisy', 'ANC', 'Clean'});
-    title(sprintf('Noisy, clean and ANC signals by linear predictor of order %d with delay %d', orderFilter, delay(iDelay)));
+    title(sprintf('ANC signal by linear predictor M = %d and \\Delta = %d, MSPE = %.2f dB', orderFilter, delay(iDelay), pow2db(mspeAnc)));
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
 % ALE vs ANC: average signal
-figure;
+% figure;
+subplot(3, 1, 3);
 for iDelay = 1: nDelays
-    subplot(nDelays, 1, iDelay);
+%     subplot(nDelays, 1, iDelay);
     hold on;
     % ALE
-    alePlot = plot(t, signalAleAvg{iDelay}, 'b');
+    alePlot = plot(t, signalAleAvg{iDelay}, 'LineWidth', 2);
     hold on;
     % ANC
-    ancPlot = plot(t, signalAncAvg{iDelay}, 'c');
+    ancPlot = plot(t, signalAncAvg{iDelay}, 'LineWidth', 2);
     hold on;
     % original signal
-    cleanPlot = plot(t, signal, 'r');
+    cleanPlot = plot(t, signal, 'k', 'LineWidth', 2);
     hold off;
     grid on; grid minor;
     legend([alePlot, ancPlot, cleanPlot], {'ALE', 'ANC', 'Clean'});
-    title(sprintf('ALE, ANC and clean signals by linear predictor of order %d with delay %d', orderFilter, delay(iDelay)));
+    title(sprintf('ALE, ANC and clean signals by linear predictor M = %d and \\Delta = %d', orderFilter, delay(iDelay)));
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
-% ALE vs ANC: MSPE
-figure;
-% ALE
-alePlot = plot(delay, pow2db(mspeAle), 'b');
-hold on;
-% ANC
-ancPlot = plot(delay, pow2db(mspeAnc), 'c');
-hold off;
-grid on; grid minor;
-legend([alePlot, ancPlot], {'ALE', 'ANC',});
-title(sprintf('MSPE of ALE and ANC by linear predictor of order %d', orderFilter));
-xlabel('Delay (sample)');
-ylabel('MSPE (dB)');
+% % ALE vs ANC: MSPE
+% figure;
+% % ALE
+% alePlot = plot(delay, pow2db(mspeAle), 'b', 'LineWidth', 2);
+% hold on;
+% % ANC
+% ancPlot = plot(delay, pow2db(mspeAnc), 'c', 'LineWidth', 2);
+% hold off;
+% grid on; grid minor;
+% legend([alePlot, ancPlot], {'ALE', 'ANC',});
+% title(sprintf('MSPE of ALE and ANC by linear predictor of order %d', orderFilter));
+% xlabel('Delay (sample)');
+% ylabel('MSPE (dB)');
 

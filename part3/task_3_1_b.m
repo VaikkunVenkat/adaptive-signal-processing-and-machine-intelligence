@@ -10,7 +10,7 @@ wind(3, :) = (v_east + 1i * v_north).';
 nWinds = 3;
 % filter order (length)
 % orderFilter = 5: 5: 20;
-orderFilter = 1: 20;
+orderFilter = 1: 24;
 % number of orders
 nOrders = length(orderFilter);
 % learning step size
@@ -18,8 +18,6 @@ step = [1e-1, 1e-2, 1e-3];
 % LMS leakage
 leak = 0;
 %% CLMS and ACLMS
-% desired signal with unit delay
-windDelayed = [zeros(nWinds, 1), wind(:, 1: end - 1)];
 predictionClms = cell(nWinds, nOrders);
 predictionAclms = cell(nWinds, nOrders);
 errorClms = cell(nWinds, nOrders);
@@ -33,9 +31,9 @@ for iWind = 1: nWinds
         % delay and group the signal
         [group] = preprocessing(wind(iWind, :), orderFilter(iOrder), 1);
         % prediction by CLMS
-        [~, predictionClms{iWind, iOrder}, errorClms{iWind, iOrder}] = clms(group, windDelayed(iWind, :), step(iWind), leak);
+        [~, predictionClms{iWind, iOrder}, errorClms{iWind, iOrder}] = clms(group, wind(iWind, :), step(iWind), leak);
         % prediction by ACLMS
-        [~, ~, predictionAclms{iWind, iOrder}, errorAclms{iWind, iOrder}] = aclms(group, windDelayed(iWind, :), step(iWind), leak);
+        [~, ~, predictionAclms{iWind, iOrder}, errorAclms{iWind, iOrder}] = aclms(group, wind(iWind, :), step(iWind), leak);
         % MSPE
         mspeClms(iWind, iOrder) = mean(abs(errorClms{iWind, iOrder}) .^ 2);
         mspeAclms(iWind, iOrder) = mean(abs(errorAclms{iWind, iOrder}) .^ 2);
@@ -53,8 +51,8 @@ for iWind = 1: nWinds
         scatter(real(wind(iWind, :)), imag(wind(iWind, :)), 3, 'filled', 'k');
         hold on;
         scatter(real(predictionClms{iWind, iOrder}), imag(predictionClms{iWind, iOrder}), 3, 'filled', 'b');
-        legend('Measured', 'CLMS');
-        title(sprintf('Circularity coefficient %.2f filter order %d', circularityCoef(iWind), orderFilter(iOrder)));
+        legend('Measured', 'CLMS', 'location', 'bestoutside');
+        title(sprintf('\\rho = %.2f and M = %d', circularityCoef(iWind), orderFilter(iOrder)));
         xlabel('Real part');
         ylabel('Imaginary part');
         counter = counter + 1;
@@ -62,8 +60,8 @@ for iWind = 1: nWinds
         scatter(real(wind(iWind, :)), imag(wind(iWind, :)), 3, 'filled', 'k');
         hold on;
         scatter(real(predictionAclms{iWind, iOrder}), imag(predictionAclms{iWind, iOrder}), 3, 'filled', 'r');
-        legend('Measured', 'ACLMS');
-        title(sprintf('Circularity coefficient %.2f filter order %d', circularityCoef(iWind), orderFilter(iOrder)));
+        legend('Measured', 'ACLMS', 'location', 'bestoutside');
+        title(sprintf('\\rho = %.2f and M = %d', circularityCoef(iWind), orderFilter(iOrder)));
         xlabel('Real part');
         ylabel('Imaginary part');
     end
@@ -72,13 +70,13 @@ end
 figure;
 for iWind = 1: nWinds
     subplot(nWinds, 1, iWind);
-    plot(pow2db(mspeClms(iWind, :)));
+    plot(pow2db(mspeClms(iWind, :)), 'LineWidth', 2);
     hold on;
-    plot(pow2db(mspeAclms(iWind, :)));
+    plot(pow2db(mspeAclms(iWind, :)), 'LineWidth', 2);
     hold off;
     grid on; grid minor;
     legend('CLMS', 'ACLMS');
-    title('MSPE against filter order');
+    title('Learning curves');
     xlabel('Order');
     ylabel('MSPE (dB)');
 end

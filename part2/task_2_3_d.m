@@ -20,17 +20,17 @@ nWindows = 2 ^ 12;
 % window overlap length
 nOverlaps = round(0.9 * nWindows);
 % step size
-step = [1e-1, 1e-2, 1e-3, 1e-4];
+step = [1e-2, 1e-3, 1e-4];
 % number of steps
 nSteps = length(step);
 % filter order (length)
-orderFilter = 5: 5: 20;
+orderFilter = 5: 5: 15;
 % number of orders
 nOrders = length(orderFilter);
 % LMS leakage
 leak = 0;
 % transient duration
-nDiscards = 50;
+nTransients = 50;
 %% Generate noise
 % amplitudes of sine waves
 ampSine = 1;
@@ -54,7 +54,7 @@ for iOrder = 1: nOrders
         % signal recovered by ANC
         signalAnc{iOrder, iStep} = delayedPoz - noiseAnc;
         % prediction error square of ANC
-        errorSquareAnc{iOrder, iStep} = (poz(nDiscards + 1: end) - signalAnc{iOrder, iStep}(nDiscards + 1: end)) .^ 2;
+        errorSquareAnc{iOrder, iStep} = (poz(nTransients + 1: end) - signalAnc{iOrder, iStep}(nTransients + 1: end)) .^ 2;
         % MSPE
         mspeAnc(iOrder, iStep) = mean(errorSquareAnc{iOrder, iStep});
     end
@@ -74,7 +74,7 @@ psdAnc = periodogram(signalAnc{orderIndex, stepIndex}, rectwin(nSamples), nFft, 
 figure;
 spectrogram(poz, nWindows, nOverlaps, nFft, fSample, 'yaxis');
 ylim([0 60]);
-title('Spectrogram of POz: original');
+title('Spectrogram of preprocessed POz');
 % specteograms by ALE with different order and step size
 for iOrder = 1: nOrders
     figure;
@@ -83,44 +83,44 @@ for iOrder = 1: nOrders
         % spectrogram (by Hamming window)
         spectrogram(signalAnc{iOrder, iStep}, nWindows, nOverlaps, nFft, fSample, 'yaxis');
         ylim([0 60]);
-        title(['Spectrogram of ANC signal by linear predictor of order ', num2str(orderFilter(iOrder)), ' step ', num2str(step(iStep))]);
+        title(['Spectrogram of ANC signal by linear predictor M = ', num2str(orderFilter(iOrder)), sprintf(' and \\mu = '), num2str(step(iStep))]);
     end
 end
 % MSPE
 figure;
 legendStr = cell(nSteps, 1);
 for iStep = 1: nSteps
-    plot(orderFilter, pow2db(mspeAnc(:, iStep)));
-    legendStr{iStep} = ['Step size ', num2str(step(iStep))];
+    plot(orderFilter, pow2db(mspeAnc(:, iStep)), 'LineWidth', 2);
+    legendStr{iStep} = [sprintf('\\mu = '), num2str(step(iStep))];
     hold on;
 end
 hold off;
 grid on; grid minor;
-legend(legendStr, 'location', 'northwest');
+legend(legendStr, 'location', 'southeast');
 title('MSPE against filter order and step size');
 xlabel('Order');
 ylabel('MSPE (dB)');
 % periodograms of original and optimal denoised POz signals
 figure;
 subplot(2, 1, 1);
-plot(fAnalog, pow2db(psdPoz));
+plot(fAnalog, pow2db(psdPoz), 'LineWidth', 2);
 hold on;
-plot(fAnalog, pow2db(psdAnc));
+plot(fAnalog, pow2db(psdAnc), 'LineWidth', 2);
 hold off;
 grid on; grid minor;
 legend('Original', 'ANC');
 title('Periodograms of original and optimal ANC POz');
 xlabel('Frequency (Hz)');
-ylabel('Power spectral density (dB/Hz)');
+ylabel('PSD (dB)');
 xlim([0 60]);
 ylim([-160 -100]);
 % periodogram error
 subplot(2, 1, 2);
-plot(fAnalog, pow2db(abs(psdPoz - psdAnc)), 'm');
+plot(fAnalog, pow2db(abs(psdPoz - psdAnc)), 'm', 'LineWidth', 2);
 grid on; grid minor;
 legend('Absolute error');
 title('Periodogram error by optimal ANC');
 xlabel('Frequency (Hz)');
-ylabel('Power spectral density (dB/Hz)');
+ylabel('PSD (dB)');
 xlim([0 60]);
 ylim([-160 -100]);

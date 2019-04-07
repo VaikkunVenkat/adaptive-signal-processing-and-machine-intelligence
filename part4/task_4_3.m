@@ -19,7 +19,8 @@ predictionLms = cell(nScales, 1);
 errorSquareLmsAvg = zeros(nScales, 1);
 predGain = zeros(nScales, 1);
 % desired one-step ahead signal
-desiredSignal = [signal(2: end), 0];
+% desiredSignal = [signal(2: end), 0];
+desiredSignal = signal;
 % delay and group the samples for estimation
 [group] = preprocessing(signal, orderAr, delay);
 for iScale = 1: nScales

@@ -61,14 +61,16 @@ end
 % Balanced vs unbalanced magnitude
 legendStr = cell(nAmps + 1, 1);
 figure;
+subplot(1, 2, 1);
 scatter(real(balancedClarke), imag(balancedClarke), 'k');
-legendStr{1} = sprintf('Balanced (circularity %.0f)', circularityBalanced);
+legendStr{1} = sprintf('Balanced \\rho = %.2f', circularityBalanced);
 hold on;
 for iAmp = 1: nAmps
     scatter(real(unbalancedClarkeAmp{iAmp}), imag(unbalancedClarkeAmp{iAmp}));
-    legendStr{iAmp + 1} = sprintf('\\DeltaV %.1f (circularity %.2f)', ampDif(iAmp), circularityUnbalancedAmp(iAmp));
+    legendStr{iAmp + 1} = sprintf('\\DeltaV = %.1f \\rho = %.2f', ampDif(iAmp), circularityUnbalancedAmp(iAmp));
     hold on;
 end
+% legend(legendStr, 'location', 'bestoutside');
 legend(legendStr);
 title('Circularity diagram with unbalanced magnitudes');
 xlabel('Real part');
@@ -78,15 +80,16 @@ ylim([-2 2]);
 set(gcf, 'position', [10, 10, 500, 500])
 % Balanced vs unbalanced phase
 legendStr = cell(nPhases + 1, 1);
-figure;
+subplot(1, 2, 2);
 scatter(real(balancedClarke), imag(balancedClarke), 'k');
-legendStr{1} = sprintf('Balanced (circularity %.0f)', circularityBalanced);
+legendStr{1} = sprintf('Balanced \\rho = %.2f', circularityBalanced);
 hold on;
 for iPhase = 1: nPhases
     scatter(real(unbalancedClarkePhase{iPhase}), imag(unbalancedClarkePhase{iPhase}));
-    legendStr{iPhase + 1} = sprintf('\\Delta\\phi %.2f (circularity %.2f)', phaseDif(iPhase), circularityUnbalancedPhase(iPhase));
+    legendStr{iPhase + 1} = sprintf('\\Delta\\phi = %.2f\\pi \\rho = %.2f', phaseDif(iPhase), circularityUnbalancedPhase(iPhase));
     hold on;
 end
+% legend(legendStr, 'location', 'bestoutside');
 legend(legendStr);
 title('Circularity diagram with unbalanced phases');
 xlabel('Real part');
