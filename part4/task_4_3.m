@@ -42,19 +42,19 @@ for iScale = 1: nScales
     hold off;
     grid on; grid minor;
     legend('Zero-mean', 'Tanh-LMS');
-    title(sprintf('One-step ahead prediction by tanh-LMS with scale %d', scale(iScale)));
+    title(sprintf('One-step ahead prediction by tanh-LMS a = %d', scale(iScale)));
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
 % MSPE and prediction gain
 figure;
 yyaxis left;
-plot(scale, errorSquareLmsAvg);
-ylabel('MSPE(dB)');
+plot(scale, errorSquareLmsAvg, 'LineWidth', 2);
+ylabel('MSPE (dB)');
 yyaxis right;
-plot(scale, predGain);
+plot(scale, predGain, 'LineWidth', 2);
 ylabel('Prediction gain');
 grid on; grid minor;
 legend('MSPE', 'Prediction gain', 'location', 'northwest');
-title('Mean square prediction error of Tanh-LMS');
+title('MSPE and prediction gain of tanh-LMS');
 xlabel('Activation scale');

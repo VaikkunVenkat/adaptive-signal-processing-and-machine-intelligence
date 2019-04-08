@@ -14,7 +14,8 @@ leak = 0;
 scale = 1;
 %% tanh-LMS
 % desired one-step ahead signal
-desiredSignal = [signal(2: end), 0];
+% desiredSignal = [signal(2: end), 0];
+desiredSignal = signal;
 % delay and group the samples for estimation
 [group] = preprocessing(signal, orderAr, delay);
 % prediction by LMS

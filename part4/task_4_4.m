@@ -1,7 +1,8 @@
 clear; close all; init;
 %% Initialisation
 ts = load('time-series.mat');
-signal = (ts.y - mean(ts.y))';
+% signal = (ts.y - mean(ts.y))';
+signal = ts.y';
 % number of samples
 nSamples = length(signal);
 % learning rate
@@ -44,20 +45,20 @@ for iScale = 1: nScales
     plot(predictionLms{iScale}, 'r');
     hold off;
     grid on; grid minor;
-    legend('Zero-mean', 'Tanh-LMS');
-    title(sprintf('One-step ahead prediction by biased tanh-LMS with scale %d', scale(iScale)));
+    legend('Non-zero-mean', 'Tanh-LMS');
+    title(sprintf('One-step ahead prediction by biased tanh-LMS a = %d', scale(iScale)));
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
 % MSPE and prediction gain
 figure;
 yyaxis left;
-plot(scale, errorSquareLmsAvg);
-ylabel('MSPE(dB)');
+plot(scale, errorSquareLmsAvg, 'LineWidth', 2);
+ylabel('MSPE (dB)');
 yyaxis right;
-plot(scale, predGain);
+plot(scale, predGain, 'LineWidth', 2);
 ylabel('Prediction gain');
 grid on; grid minor;
 legend('MSPE', 'Prediction gain', 'location', 'northwest');
-title('Mean square prediction error of biased Tanh-LMS');
+title('MSPE and prediction gain of biased tanh-LMS');
 xlabel('Activation scale');

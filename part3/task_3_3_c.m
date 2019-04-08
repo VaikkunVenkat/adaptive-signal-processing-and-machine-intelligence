@@ -26,8 +26,6 @@ leak = [0, 1e-2, 1e-1, 5e-1];
 nLeaks = length(leak);
 % FM signal
 fmSignal = exp(1i * 2 * pi / fSample * phaseSeq) + sqrt(variance / 2) * (randn(1, nSamples) + 1i * randn(1, nSamples));
-% % number of evaluation points
-% nPoints = 1024;
 % DFT matrix (row complex phasor as filter input)
 dftMat = 1 / nSamples * exp(1i * (1: nSamples)' * 2 * pi / nSamples * (0: nSamples - 1));
 %% AR-CLMS
@@ -61,26 +59,27 @@ end
 %% Result plot
 figure;
 for iLeak = 1: nLeaks
-    % AR-CLMS
-    subplot(nLeaks, 2, 2 * (iLeak - 1) + 1);
-    mesh(psdArClms{iLeak});
-    view(2);
-    cbar = colorbar;
-    cbar.Label.String = 'PSD (dB)';
-    grid on; grid minor;
-    legend('AR-CLMS');
-    title(['Time-frequency diagram of FM signal by AR-CLMS of step ', num2str(stepAr), ' leak ', num2str(leak(iLeak))]);
-    xlabel('Time (sample)');
-    ylabel('Frequency (Hz)');
+%     % AR-CLMS
+%     subplot(nLeaks, 2, 2 * (iLeak - 1) + 1);
+%     mesh(psdArClms{iLeak});
+%     view(2);
+%     cbar = colorbar;
+%     cbar.Label.String = 'PSD (dB)';
+%     grid on; grid minor;
+%     legend('AR-CLMS');
+%     title(['Time-frequency diagram of FM signal by AR-CLMS of step ', num2str(stepAr), ' leak ', num2str(leak(iLeak))]);
+%     xlabel('Time (sample)');
+%     ylabel('Frequency (Hz)');
     % DFT-CLMS
-    subplot(nLeaks, 2, 2 * iLeak);
+    subplot(nLeaks, 1, iLeak);
     mesh(psdDftClms{iLeak});
     view(2);
     cbar = colorbar;
     cbar.Label.String = 'PSD (dB)';
     grid on; grid minor;
     legend('DFT-CLMS');
-    title(['Time-frequency diagram of FM signal by DFT-CLMS of step ', num2str(stepDft), ' leak ', num2str(leak(iLeak))]);
+    title([sprintf('Time-frequency diagram of FM signal by DFT-CLMS \\mu = '), num2str(stepDft), sprintf(' \\gamma = '), num2str(leak(iLeak))]);
     xlabel('Time (sample)');
     ylabel('Frequency (Hz)');
+    ylim([0 1000]);
 end

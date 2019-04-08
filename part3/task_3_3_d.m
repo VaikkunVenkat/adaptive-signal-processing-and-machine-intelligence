@@ -4,17 +4,19 @@ eeg = load('data/EEG_Data/EEG_Data_Assignment1.mat');
 % analog sampling frequency
 fSample = eeg.fs;
 % remove mean
-poz = (eeg.POz - mean(eeg.POz))';
+% poz = detrend(eeg.POz - mean(eeg.POz))';
+poz = (eeg.POz)';
 % length of segment
 nSamples = 1200;
 % index of segment start position
-pos = 1000;
+pos = 1e3;
 % choose a segment to reduce the computational burden
 poz = poz(pos: pos + nSamples - 1);
+poz = detrend(poz - mean(poz));
 % learning step size
 step = 1;
 % LMS leakage
-leak = [0, 1e-3, 1e-2];
+leak = [0, 1e-3];
 % number of leaks
 nLeaks = length(leak);
 % DFT matrix (row complex phasor as filter input)
@@ -29,7 +31,7 @@ for iLeak = 1: nLeaks
     % store PSD
     psdDftClms{iLeak} = abs(hFreqDftClms) .^ 2;
     % remove outliers (50 times larger than median)
-    medianPsdDftClms = 50 * median(psdDftClms{iLeak}, 'all');
+    medianPsdDftClms = 1e3 * median(psdDftClms{iLeak}, 'all');
     psdDftClms{iLeak}(psdDftClms{iLeak} > medianPsdDftClms) = medianPsdDftClms;
 end
 %% Result plot
@@ -43,8 +45,8 @@ for iLeak = 1: nLeaks
     cbar.Label.String = 'PSD (dB)';
     grid on; grid minor;
     legend('DFT-CLMS');
-    title(['Time-frequency diagram of EEG signal by DFT-CLMS of step ', num2str(step), ' leak ', num2str(leak(iLeak))]);
+    title([sprintf('Time-frequency diagram of EEG signal by DFT-CLMS \\mu = '), num2str(step), sprintf(' \\gamma = '), num2str(leak(iLeak))]);
     xlabel('Time (sample)');
     ylabel('Frequency (Hz)');
-    ylim([0 100]);
+    ylim([0 70]);
 end

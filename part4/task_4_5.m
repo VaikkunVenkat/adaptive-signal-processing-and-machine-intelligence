@@ -1,7 +1,8 @@
 clear; close all; init;
 %% Initialisation
 ts = load('time-series.mat');
-signal = (ts.y - mean(ts.y))';
+% signal = (ts.y - mean(ts.y))';
+signal = ts.y';
 % number of samples
 nSamples = length(signal);
 % learning rate
@@ -13,11 +14,11 @@ delay = 1;
 % LMS leakage
 leak = 0;
 % scale on the activation function
-scale = 10: 10: 100;
+scale = 10: 30: 100;
 % number of scales
 nScales = length(scale);
 % number of epochs
-nEpochs = 100;
+nEpochs = 1;
 % number of samples to overfit (size of minibatch)
 nSampleInit = 20;
 %% biased tanh-LMS with pretrained weights
@@ -29,7 +30,8 @@ predGainPretrained = zeros(nScales, 1);
 % extend (repeat) the first minibatch
 extBatch = repmat(signal(1: nSampleInit), 1, nEpochs);
 % desired signal
-desiredSignal = repmat([signal(2: nSampleInit), 0], 1, nEpochs);
+% desiredSignal = repmat([signal(2: nSampleInit), 0], 1, nEpochs);
+desiredSignal = repmat(signal, 1, nEpochs);
 % group the extended batch
 [extGroup] = preprocessing(extBatch, orderAr, delay);
 % augmented group for adaptive bias
@@ -40,7 +42,8 @@ for iScale = 1: nScales
 end
 % use initial weight to predict the entire series
 % desired one-step ahead signal
-desiredSignal = [signal(2: end), 0];
+% desiredSignal = [signal(2: end), 0];
+desiredSignal = signal;
 % delay and group the samples for estimation
 [group] = preprocessing(signal, orderAr, delay);
 % augmented group for adaptive bias
@@ -63,20 +66,20 @@ for iScale = 1: nScales
     plot(predictionLmsPretrained{iScale}, 'r');
     hold off;
     grid on; grid minor;
-    legend('Zero-mean', 'Tanh-LMS');
-    title(sprintf('One-step ahead prediction by biased tanh-LMS with pretrained weights scale %d', scale(iScale)));
+    legend('Non-zero-mean', 'Tanh-LMS');
+    title(sprintf('One-step ahead prediction by biased tanh-LMS with pretrained weights a = %d', scale(iScale)));
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
 % MSPE and prediction gain
 figure;
 yyaxis left;
-plot(scale, errorSquareLmsAvgPretrained);
-ylabel('MSPE(dB)');
+plot(scale, errorSquareLmsAvgPretrained, 'LineWidth', 2);
+ylabel('MSPE (dB)');
 yyaxis right;
-plot(scale, predGainPretrained);
+plot(scale, predGainPretrained, 'LineWidth', 2);
 ylabel('Prediction gain');
 grid on; grid minor;
 legend('MSPE', 'Prediction gain', 'location', 'northwest');
-title('Mean square prediction error of biased Tanh-LMS');
+title('MSPE and prediction gain of pretrained biased tanh-LMS');
 xlabel('Activation scale');
