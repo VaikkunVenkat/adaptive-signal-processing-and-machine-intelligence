@@ -20,8 +20,8 @@ nSteps = length(step);
 stepInit = 0;
 % LMS leakage
 leak = 0;
-% learning rate
-rate = 5e-3;
+% learning scale rho
+scale = 5e-3;
 % algorithms
 benveniste.name = 'Benveniste';
 benveniste.param = NaN;
@@ -51,7 +51,7 @@ for iStep = 1: nSteps
         % order plus one to capture current innovation
         [group] = preprocessing(innovation(iRp, :), orderMa + 1, delay);
         % weight by LMS
-        [weightLms{iStep, iRp}, ~, errorLms{iStep, iRp}] = leaky_lms(group, signal, step(iStep), leak);
+        [weightLms{iStep, iRp}, ~, errorLms{iStep, iRp}] = lms(group, signal, step(iStep), leak);
     end
     % average weight
     weightLmsAvg{iStep} = mean(cat(3, weightLms{iStep, :}), 3);
@@ -72,11 +72,11 @@ for iRp = 1: nRps
     % grouped samples to approximate the value at certain instant
     [group] = preprocessing(innovation(iRp, :), orderMa + 1, delay);
     % Benveniste
-    [weightBenveniste{iRp}, ~, errorBenveniste{iRp}] = gass(group, signal, stepInit, rate, leak, benveniste);
+    [weightBenveniste{iRp}, ~, errorBenveniste{iRp}] = gass(group, signal, stepInit, scale, leak, benveniste);
     % Ang-Farhang
-    [weightAng{iRp}, ~, errorAng{iRp}] = gass(group, signal, stepInit, rate, leak, ang);
+    [weightAng{iRp}, ~, errorAng{iRp}] = gass(group, signal, stepInit, scale, leak, ang);
     % Matthews-Xie
-    [weightMatthews{iRp}, ~, errorMatthews{iRp}] = gass(group, signal, stepInit, rate, leak, matthews);
+    [weightMatthews{iRp}, ~, errorMatthews{iRp}] = gass(group, signal, stepInit, scale, leak, matthews);
 end
 % average weights
 weightBenvenisteAvg = mean(cat(3, weightBenveniste{:}), 3);

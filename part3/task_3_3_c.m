@@ -59,17 +59,6 @@ end
 %% Result plot
 figure;
 for iLeak = 1: nLeaks
-%     % AR-CLMS
-%     subplot(nLeaks, 2, 2 * (iLeak - 1) + 1);
-%     mesh(psdArClms{iLeak});
-%     view(2);
-%     cbar = colorbar;
-%     cbar.Label.String = 'PSD (dB)';
-%     grid on; grid minor;
-%     legend('AR-CLMS');
-%     title(['Time-frequency diagram of FM signal by AR-CLMS of step ', num2str(stepAr), ' leak ', num2str(leak(iLeak))]);
-%     xlabel('Time (sample)');
-%     ylabel('Frequency (Hz)');
     % DFT-CLMS
     subplot(nLeaks, 1, iLeak);
     mesh(psdDftClms{iLeak});

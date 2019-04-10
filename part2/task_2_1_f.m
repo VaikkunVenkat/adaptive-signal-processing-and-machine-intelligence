@@ -38,7 +38,7 @@ for iLeak = 1: nLeaks
             % grouped samples to approximate the value at certain instant
             [group] = preprocessing(signal, orderAr, delay);
             % weight by leaky LMS
-            [weightLeakyLms{iLeak, iStep, iRp}, ~, ~] = leaky_lms(group, signal, step(iStep), leak(iLeak));
+            [weightLeakyLms{iLeak, iStep, iRp}, ~, ~] = lms(group, signal, step(iStep), leak(iLeak));
         end
         % average weight
         weightLeakyLmsAvg{iLeak, iStep} = mean(cat(3, weightLeakyLms{iLeak, iStep, :}), 3);

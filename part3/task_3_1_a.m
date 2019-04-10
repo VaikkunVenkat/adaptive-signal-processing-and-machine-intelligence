@@ -24,8 +24,6 @@ errorClms = cell(nRps, 1);
 errorAclms = cell(nRps, 1);
 for iRp = 1: nRps
     % desired signal with unit delay
-%     delayedSignal = [0, conj(wlmaSignal(iRp, 1: end - 1))];
-%     delayedSignal = wlmaSignal(iRp, :);
     delayedSignal = [0, (wlmaSignal(iRp, 1: end - 1))];
     % delay and group the white noise
     [group] = preprocessing(whiteNoise(iRp, :), orderFilter, 1);

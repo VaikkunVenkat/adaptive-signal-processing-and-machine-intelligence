@@ -14,13 +14,11 @@ variance = 0.5;
 delay = 1;
 % initial step size for GASS and GNGD
 stepGass = 0.5;
-% stepGass = 0;
 stepGngd = 7;
-% stepGngd = 0;
 % LMS leakage
 leak = 0;
-% learning rate
-rate = 5e-3;
+% learning scale rho
+scale = 5e-3;
 % algorithms
 benveniste.name = 'Benveniste';
 benveniste.param = NaN;
@@ -44,9 +42,9 @@ for iRp = 1: nRps
     % order plus one to capture current innovation
     [group] = preprocessing(innovation(iRp, :), orderMa + 1, delay);
     % GASS algorithm
-    [weightGass{iRp}, ~, errorGass{iRp}] = gass(group, signal, stepGass, rate, leak, benveniste);
+    [weightGass{iRp}, ~, errorGass{iRp}] = gass(group, signal, stepGass, scale, leak, benveniste);
     % GNGD algorithm
-    [weightGngd{iRp}, ~, errorGngd{iRp}] = gngd(group, signal, stepGngd, rate, leak);
+    [weightGngd{iRp}, ~, errorGngd{iRp}] = gngd(group, signal, stepGngd, scale, leak);
 end
 % average weights
 weightGassAvg = mean(cat(3, weightGass{:}), 3);

@@ -11,17 +11,15 @@ delay = 1;
 % LMS leakage
 leak = 0;
 %% LMS
-% desired one-step ahead signal
-% desiredSignal = [signal(2: end), 0];
-desiredSignal = signal;
 % delay and group the samples for estimation
 [group] = preprocessing(signal, orderAr, delay);
 % prediction by LMS
-[hLms, predictionLms, errorLms] = leaky_lms(group, desiredSignal, step, leak);
+[hLms, predictionLms, errorLms] = lms(group, signal, step, leak);
 % mean square error
 errorSquareLmsAvg = mean(abs(errorLms) .^ 2);
 % prediction gain
 predGain = var(predictionLms) / var(errorLms);
+predGainDb = pow2db(predGain);
 %% Result plot
 figure;
 plot(signal, 'k');
@@ -35,4 +33,4 @@ xlabel('Time (sample)');
 ylabel('Amplitude');
 % print results
 fprintf('MSE: %.4f dB\n', pow2db(errorSquareLmsAvg));
-fprintf('Prediction gain %.4f\n', predGain);
+fprintf('Prediction gain %.4f dB\n', predGainDb);

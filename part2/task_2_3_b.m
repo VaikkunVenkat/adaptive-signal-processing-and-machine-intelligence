@@ -54,7 +54,7 @@ for iOrder = 1: nOrders
             % preprocess the signal corrupted by coloured noise 
             [group] = preprocessing(noisySignal, orderFilter(iOrder), delay(iDelay));
             % signal predicted by ALE
-            [~, signalAle, ~] = leaky_lms(group, noisySignal, step, leak);
+            [~, signalAle, ~] = lms(group, noisySignal, step, leak);
             % prediction error square
             errorSquare{iOrder, iDelay, iRp} = (signal(nTransients + 1: end) - signalAle(nTransients + 1: end)) .^ 2;
         end
@@ -63,9 +63,9 @@ for iOrder = 1: nOrders
     end
 end
 %% Result plot
+figure;
 % MSPE vs delay
 legendStr = cell(nOrders, 1);
-% figure;
 subplot(2, 1, 1);
 for iOrder = 1: nOrders
     plot(delay, pow2db(mspe(iOrder, :)), 'LineWidth', 2);

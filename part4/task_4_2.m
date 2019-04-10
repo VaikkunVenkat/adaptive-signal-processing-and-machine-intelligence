@@ -13,17 +13,15 @@ leak = 0;
 % scale on the activation function
 scale = 1;
 %% tanh-LMS
-% desired one-step ahead signal
-% desiredSignal = [signal(2: end), 0];
-desiredSignal = signal;
 % delay and group the samples for estimation
 [group] = preprocessing(signal, orderAr, delay);
 % prediction by LMS
-[hLms, predictionLms, errorLms] = lms_tanh(group, desiredSignal, step, leak, scale);
+[hLms, predictionLms, errorLms] = lms_tanh(group, signal, step, leak, scale);
 % mean square error
 errorSquareLmsAvg = mean(abs(errorLms) .^ 2);
 % prediction gain
 predGain = var(predictionLms) / var(errorLms);
+predGainDb = pow2db(predGain);
 %% Result plot
 figure;
 plot(signal, 'k');
@@ -37,4 +35,4 @@ xlabel('Time (sample)');
 ylabel('Amplitude');
 % print results
 fprintf('MSE: %.4f dB\n', pow2db(errorSquareLmsAvg));
-fprintf('Prediction gain %.4f\n', predGain);
+fprintf('Prediction gain %.4f dB\n', predGainDb);

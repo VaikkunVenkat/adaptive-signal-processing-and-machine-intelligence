@@ -9,7 +9,6 @@ wind(3, :) = (v_east + 1i * v_north).';
 % number of winds
 nWinds = 3;
 % filter order (length)
-% orderFilter = 5: 5: 20;
 orderFilter = 1: 24;
 % number of orders
 nOrders = length(orderFilter);
@@ -76,7 +75,7 @@ for iWind = 1: nWinds
     hold off;
     grid on; grid minor;
     legend('CLMS', 'ACLMS');
-    title('Learning curves');
+    title(sprintf('Learning curves of wind level %d', iWind));
     xlabel('Order');
     ylabel('MSPE (dB)');
 end

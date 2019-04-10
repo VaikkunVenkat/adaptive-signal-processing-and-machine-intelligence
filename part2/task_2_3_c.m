@@ -59,7 +59,7 @@ for iDelay = 1: nDelays
         % ALE: preprocess the signal corrupted by coloured noise 
         [group] = preprocessing(noisySignal{iDelay, iRp}, orderFilter, delay(iDelay));
         % signal predicted by ALE
-        [~, signalAle{iDelay, iRp}, ~] = leaky_lms(group, noisySignal{iDelay, iRp}, step, leak);
+        [~, signalAle{iDelay, iRp}, ~] = lms(group, noisySignal{iDelay, iRp}, step, leak);
         % prediction error square of ALE
         errorSquareAle{iDelay, iRp} = (signal(nTransients + 1: end) - signalAle{iDelay, iRp}(nTransients + 1: end)) .^ 2;
         % noisy signal with unit delay
@@ -67,7 +67,7 @@ for iDelay = 1: nDelays
         % ANC: preprocess the secondary noise
         [group] = preprocessing(secondaryNoise(iRp, :), orderFilter, 1);
         % noise predicted by ANC
-        [~, noiseAnc, ~] = leaky_lms(group, delayedSignal, step, leak);
+        [~, noiseAnc, ~] = lms(group, delayedSignal, step, leak);
         % signal recovered by ANC
         signalAnc{iDelay, iRp} = delayedSignal - noiseAnc;
         % prediction error square of ANC
@@ -85,7 +85,6 @@ end
 figure;
 subplot(3, 1, 1);
 for iDelay = 1: nDelays
-%     subplot(nDelays, 1, iDelay);
     % individual realisations
     for iRp = 1: nRps
         % noisy signals
@@ -105,10 +104,8 @@ for iDelay = 1: nDelays
     ylabel('Amplitude');
 end
 % signal vs ANC prediction
-% figure;
 subplot(3, 1, 2);
 for iDelay = 1: nDelays
-%     subplot(nDelays, 1, iDelay);
     % individual realisations
     for iRp = 1: nRps
         % noisy signals
@@ -128,10 +125,8 @@ for iDelay = 1: nDelays
     ylabel('Amplitude');
 end
 % ALE vs ANC: average signal
-% figure;
 subplot(3, 1, 3);
 for iDelay = 1: nDelays
-%     subplot(nDelays, 1, iDelay);
     hold on;
     % ALE
     alePlot = plot(t, signalAleAvg{iDelay}, 'LineWidth', 2);
@@ -148,17 +143,3 @@ for iDelay = 1: nDelays
     xlabel('Time (sample)');
     ylabel('Amplitude');
 end
-% % ALE vs ANC: MSPE
-% figure;
-% % ALE
-% alePlot = plot(delay, pow2db(mspeAle), 'b', 'LineWidth', 2);
-% hold on;
-% % ANC
-% ancPlot = plot(delay, pow2db(mspeAnc), 'c', 'LineWidth', 2);
-% hold off;
-% grid on; grid minor;
-% legend([alePlot, ancPlot], {'ALE', 'ANC',});
-% title(sprintf('MSPE of ALE and ANC by linear predictor of order %d', orderFilter));
-% xlabel('Delay (sample)');
-% ylabel('MSPE (dB)');
-

@@ -49,7 +49,7 @@ for iDelay = 1: nDelays
         % preprocess the signal corrupted by coloured noise 
         [group] = preprocessing(noisySignal{iDelay, iRp}, orderFilter, iDelay);
         % signal predicted by ALE
-        [~, signalAle{iDelay, iRp}, ~] = leaky_lms(group, noisySignal{iDelay, iRp}, step, leak);
+        [~, signalAle{iDelay, iRp}, ~] = lms(group, noisySignal{iDelay, iRp}, step, leak);
         % prediction error square
         errorSquare{iDelay, iRp} = (signal(nTransients + 1: end) - signalAle{iDelay, iRp}(nTransients + 1: end)) .^ 2;
     end

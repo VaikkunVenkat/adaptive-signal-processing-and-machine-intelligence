@@ -1,4 +1,4 @@
-function [weightGass, prediction, error] = gass(group, signal, step, rate, leak, algorithm)
+function [weightGass, prediction, error] = gass(group, signal, step, scale, leak, algorithm)
 % Function:
 %   - GASS (gradient adaptive stepsize) LMS predictor with adaptive step 
 %   size based on ARMA model
@@ -7,7 +7,7 @@ function [weightGass, prediction, error] = gass(group, signal, step, rate, leak,
 %   - group: previous samples to predict the current signal value
 %   - signal: original signal
 %   - step: initial step size
-%   - rate: learning rate
+%   - scale: learning scale rho
 %   - leak: leakage coefficient
 %   - algorithm: select from 'Benveniste', 'Ang', 'Matthews'
 %
@@ -36,7 +36,7 @@ for iSample = 1: nSamples
     % update weight
     weightGass(:, iSample + 1) = (1 - step(iSample) * leak) * weightGass(:, iSample) + step(iSample) * error(iSample) * group(:, iSample);
     % update step size by learning rate and cost function
-    step(iSample + 1) = step(iSample) + rate * error(iSample) * group(:, iSample)' * costFun(:, iSample);
+    step(iSample + 1) = step(iSample) + scale * error(iSample) * group(:, iSample)' * costFun(:, iSample);
     % update cost function
     switch algorithm.name
         case 'Benveniste'

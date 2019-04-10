@@ -1,7 +1,7 @@
 clear; close all; init;
 %% Initialisation
 ts = load('time-series.mat');
-% signal = (ts.y - mean(ts.y))';
+% non-zero-mean signal
 signal = ts.y';
 % number of samples
 nSamples = length(signal);
@@ -21,21 +21,19 @@ nScales = length(scale);
 predictionLms = cell(nScales, 1);
 errorSquareLmsAvg = zeros(nScales, 1);
 predGain = zeros(nScales, 1);
-% desired one-step ahead signal
-% desiredSignal = [signal(2: end), 0];
-desiredSignal = signal;
 % delay and group the samples for estimation
 [group] = preprocessing(signal, orderAr, delay);
 % augmented group for adaptive bias
 augGroup = [ones(1, size(group, 2)); group];
 for iScale = 1: nScales
     % prediction by LMS
-    [hLms, predictionLms{iScale}, errorLms] = lms_tanh(augGroup, desiredSignal, step, leak, scale(iScale));
+    [hLms, predictionLms{iScale}, errorLms] = lms_tanh(augGroup, signal, step, leak, scale(iScale));
     % mean square error
     errorSquareLmsAvg(iScale) = mean(abs(errorLms) .^ 2);
     % prediction gain
     predGain(iScale) = var(predictionLms{iScale}) / var(errorLms);
 end
+predGainDb = pow2db(predGain);
 %% Result plot
 figure;
 for iScale = 1: nScales
@@ -56,8 +54,8 @@ yyaxis left;
 plot(scale, errorSquareLmsAvg, 'LineWidth', 2);
 ylabel('MSPE (dB)');
 yyaxis right;
-plot(scale, predGain, 'LineWidth', 2);
-ylabel('Prediction gain');
+plot(scale, predGainDb, 'LineWidth', 2);
+ylabel('Prediction gain (dB)');
 grid on; grid minor;
 legend('MSPE', 'Prediction gain', 'location', 'northwest');
 title('MSPE and prediction gain of biased tanh-LMS');

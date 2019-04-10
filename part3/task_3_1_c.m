@@ -70,7 +70,6 @@ for iAmp = 1: nAmps
     legendStr{iAmp + 1} = sprintf('\\DeltaV = %.1f \\rho = %.2f', ampDif(iAmp), circularityUnbalancedAmp(iAmp));
     hold on;
 end
-% legend(legendStr, 'location', 'bestoutside');
 legend(legendStr);
 title('Circularity diagram with unbalanced magnitudes');
 xlabel('Real part');
@@ -89,7 +88,6 @@ for iPhase = 1: nPhases
     legendStr{iPhase + 1} = sprintf('\\Delta\\phi = %.2f\\pi \\rho = %.2f', phaseDif(iPhase), circularityUnbalancedPhase(iPhase));
     hold on;
 end
-% legend(legendStr, 'location', 'bestoutside');
 legend(legendStr);
 title('Circularity diagram with unbalanced phases');
 xlabel('Real part');

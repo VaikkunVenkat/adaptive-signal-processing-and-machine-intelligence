@@ -26,8 +26,6 @@ nSteps = length(step);
 leak = 0;
 % FM signal
 fmSignal = exp(1i * 2 * pi / fSample * phaseSeq) + sqrt(variance / 2) * (randn(1, nSamples) + 1i * randn(1, nSamples));
-% % number of evaluation points
-% nPoints = 1024;
 %% AR-CLMS and frequency analysis
 psdArClms = cell(nSteps, 1);
 % delay and group the FM signal

@@ -18,19 +18,17 @@ nScales = length(scale);
 predictionLms = cell(nScales, 1);
 errorSquareLmsAvg = zeros(nScales, 1);
 predGain = zeros(nScales, 1);
-% desired one-step ahead signal
-% desiredSignal = [signal(2: end), 0];
-desiredSignal = signal;
 % delay and group the samples for estimation
 [group] = preprocessing(signal, orderAr, delay);
 for iScale = 1: nScales
     % prediction by LMS
-    [hLms, predictionLms{iScale}, errorLms] = lms_tanh(group, desiredSignal, step, leak, scale(iScale));
+    [hLms, predictionLms{iScale}, errorLms] = lms_tanh(group, signal, step, leak, scale(iScale));
     % mean square error
     errorSquareLmsAvg(iScale) = mean(abs(errorLms) .^ 2);
     % prediction gain
     predGain(iScale) = var(predictionLms{iScale}) / var(errorLms);
 end
+predGainDb = pow2db(predGain);
 %% Result plot
 % prediction
 figure;
@@ -52,8 +50,8 @@ yyaxis left;
 plot(scale, errorSquareLmsAvg, 'LineWidth', 2);
 ylabel('MSPE (dB)');
 yyaxis right;
-plot(scale, predGain, 'LineWidth', 2);
-ylabel('Prediction gain');
+plot(scale, predGainDb, 'LineWidth', 2);
+ylabel('Prediction gain (dB)');
 grid on; grid minor;
 legend('MSPE', 'Prediction gain', 'location', 'northwest');
 title('MSPE and prediction gain of tanh-LMS');

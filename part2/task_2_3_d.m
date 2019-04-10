@@ -50,7 +50,7 @@ for iOrder = 1: nOrders
     [group] = preprocessing(noise, orderFilter(iOrder), 1);
     for iStep = 1: nSteps
         % noise predicted by ANC
-        [~, noiseAnc, ~] = leaky_lms(group, delayedPoz, step(iStep), leak);
+        [~, noiseAnc, ~] = lms(group, delayedPoz, step(iStep), leak);
         % signal recovered by ANC
         signalAnc{iOrder, iStep} = delayedPoz - noiseAnc;
         % prediction error square of ANC

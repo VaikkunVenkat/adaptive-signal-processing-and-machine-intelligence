@@ -36,7 +36,7 @@ for iStep = 1: nSteps
         % grouped samples to approximate the value at certain instant
         [group] = preprocessing(signal, orderAr, delay);
         % error by LMS estimation
-        [~, ~, error] = leaky_lms(group, signal, step(iStep), leak);
+        [~, ~, error] = lms(group, signal, step(iStep), leak);
         % mean square error in stable state
         mse(iStep, iRp) = mean(error(nTransients + 1: end) .^ 2);
     end

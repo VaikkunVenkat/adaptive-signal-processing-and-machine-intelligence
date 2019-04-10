@@ -1,4 +1,4 @@
-function [weightLms, prediction, error] = leaky_lms(group, signal, step, leak)
+function [weightLms, prediction, error] = lms(group, signal, step, leak)
 % Function:
 %   - leaky LMS adaptive predictor based on ARMA model
 %
