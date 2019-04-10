@@ -1,7 +1,7 @@
 clear; close all; init;
 %% Initialisation
 ts = load('time-series.mat');
-% signal = (ts.y - mean(ts.y))';
+% non-zero-mean signal
 signal = ts.y';
 % number of samples
 nSamples = length(signal);
@@ -14,48 +14,44 @@ delay = 1;
 % LMS leakage
 leak = 0;
 % scale on the activation function
-scale = 10: 30: 100;
+scale = 10: 10: 100;
 % number of scales
 nScales = length(scale);
 % number of epochs
-nEpochs = 1;
+nEpochs = 100;
 % number of samples to overfit (size of minibatch)
-nSampleInit = 20;
-%% biased tanh-LMS with pretrained weights
+nInits = 20;
+%% Overfit the initial minibatch
 hInit = cell(nScales, 1);
-predictionLmsPretrained = cell(nScales, 1);
-errorSquareLmsAvgPretrained = zeros(nScales, 1);
-predGainPretrained = zeros(nScales, 1);
-% overfit the initial minibatch
+predictionLms = cell(nScales, 1);
+errorSquareLmsAvg = zeros(nScales, 1);
+predGain = zeros(nScales, 1);
 % extend (repeat) the first minibatch
-extBatch = repmat(signal(1: nSampleInit), 1, nEpochs);
-% desired signal
-% desiredSignal = repmat([signal(2: nSampleInit), 0], 1, nEpochs);
-desiredSignal = repmat(signal, 1, nEpochs);
+batch = repmat(signal(1: nInits), 1, nEpochs);
 % group the extended batch
-[extGroup] = preprocessing(extBatch, orderAr, delay);
+[batchGroup] = preprocessing(batch, orderAr, delay);
 % augmented group for adaptive bias
-augExtGroup = [ones(1, size(extGroup, 2)); extGroup];
+augBatchGroup = [ones(1, size(batchGroup, 2)); batchGroup];
 for iScale = 1: nScales
     % overfit by tanh-LMS
-    [hInit{iScale}, ~, ~] = lms_tanh(augExtGroup, desiredSignal, step, leak, scale(iScale));
+    [hInit{iScale}, ~, ~] = lms_tanh(augBatchGroup, batch, step, leak, scale(iScale));
+    % store the last updated weight
+    hInit{iScale} = hInit{iScale}(:, end);
 end
-% use initial weight to predict the entire series
-% desired one-step ahead signal
-% desiredSignal = [signal(2: end), 0];
-desiredSignal = signal;
+%% Use initial weight to predict the entire series
 % delay and group the samples for estimation
 [group] = preprocessing(signal, orderAr, delay);
 % augmented group for adaptive bias
 augGroup = [ones(1, size(group, 2)); group];
 for iScale = 1: nScales
     % prediction by LMS
-    [~, predictionLmsPretrained{iScale}, errorLms] = lms_tanh(augGroup, desiredSignal, step, leak, scale(iScale), hInit{iScale}(:, end));
+    [~, predictionLms{iScale}, errorLms] = lms_tanh(augGroup, signal, step, leak, scale(iScale), hInit{iScale});
     % mean square error
-    errorSquareLmsAvgPretrained(iScale) = mean(abs(errorLms) .^ 2);
+    errorSquareLmsAvg(iScale) = mean(abs(errorLms) .^ 2);
     % prediction gain
-    predGainPretrained(iScale) = var(predictionLmsPretrained{iScale}) / var(errorLms);
+    predGain(iScale) = var(predictionLms{iScale}) / var(errorLms);
 end
+predGainDb = pow2db(predGain);
 %% Result plot
 % prediction by pretrained tanh-LMS
 figure;
@@ -63,7 +59,7 @@ for iScale = 1: nScales
     subplot(nScales, 1, iScale);
     plot(signal, 'k');
     hold on;
-    plot(predictionLmsPretrained{iScale}, 'r');
+    plot(predictionLms{iScale}, 'r');
     hold off;
     grid on; grid minor;
     legend('Non-zero-mean', 'Tanh-LMS');
@@ -74,11 +70,11 @@ end
 % MSPE and prediction gain
 figure;
 yyaxis left;
-plot(scale, errorSquareLmsAvgPretrained, 'LineWidth', 2);
+plot(scale, errorSquareLmsAvg, 'LineWidth', 2);
 ylabel('MSPE (dB)');
 yyaxis right;
-plot(scale, predGainPretrained, 'LineWidth', 2);
-ylabel('Prediction gain');
+plot(scale, predGainDb, 'LineWidth', 2);
+ylabel('Prediction gain (dB)');
 grid on; grid minor;
 legend('MSPE', 'Prediction gain', 'location', 'northwest');
 title('MSPE and prediction gain of pretrained biased tanh-LMS');
